@@ -85,7 +85,7 @@ def login():
             session["user_id"] = user.id
             session["username"] = user.username  # store the username in session
             flash("Logged in successfully!", "success")
-            return redirect(url_for("index"))
+            return redirect(url_for("profile"))
         else:
             flash("Invalid credentials. Please try again.", "danger")
             return redirect(url_for("login"))

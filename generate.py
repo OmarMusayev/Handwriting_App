@@ -60,7 +60,7 @@ def generate_unconditional_seq(model_path, seq_len, device, bias, style, prime):
 
 
 def generate_conditional_sequence(
-    model_path,
+    model_or_path,
     char_seq,
     device,
     char_to_id,
@@ -72,25 +72,27 @@ def generate_conditional_sequence(
     is_map,
     batch_size=1,
 ):
-    model = HandWritingSynthesisNet(window_size=len(char_to_id))
+    # Check if we received a file path (string) or a model instance
+    if isinstance(model_or_path, str):
+        print("Loading model from file:", model_or_path)
+        # Create a new instance and load the state dict from file
+        model = HandWritingSynthesisNet(window_size=len(char_to_id))
+        model.load_state_dict(torch.load(model_or_path, map_location=device))
+        model = model.to(device)
+        model.eval()
+    else:
+        print("Using preloaded model instance")
+        model = model_or_path
+
     print("Vocab size: ", len(char_to_id))
-    # load the best model
-    model.load_state_dict(torch.load(model_path, map_location=device))
-
-    # Print model's state_dict
-    # print(f"Model's state_dict:")
-    # for param_tensor in model.state_dict():
-    #     print(f"{param_tensor}\t {model.state_dict()[param_tensor]}")
-
-    model = model.to(device)
-    model.eval()
-
-    # initial input
+    
+    # Initial input: if priming, use the given prime_seq (which is 'style')
     if prime:
         inp = prime_seq
         real_seq = np.array(list(real_text))
         idx_arr = [char_to_id[char] for char in real_seq]
-        prime_text = np.array([idx_arr for i in range(batch_size)]).astype(np.float32)
+        # Create a batch of the priming text
+        prime_text = np.array([idx_arr for _ in range(batch_size)]).astype(np.float32)
         prime_text = torch.from_numpy(prime_text).to(device)
         prime_mask = torch.ones(prime_text.shape).to(device)
     else:
@@ -98,15 +100,14 @@ def generate_conditional_sequence(
         prime_mask = None
         inp = torch.zeros(batch_size, 1, 3).to(device)
 
+    # Process the character sequence
     char_seq = np.array(list(char_seq + "  "))
-    print("".join(char_seq))
-    text = np.array(
-        [[char_to_id[char] for char in char_seq] for i in range(batch_size)]
-    ).astype(np.float32)
+    print("Input text:", "".join(char_seq))
+    text = np.array([[char_to_id[char] for char in char_seq] for _ in range(batch_size)]).astype(np.float32)
     text = torch.from_numpy(text).to(device)
-
     text_mask = torch.ones(text.shape).to(device)
 
+    # Initialize the hidden state, window vector and kappa
     hidden, window_vector, kappa = model.init_hidden(batch_size, device)
 
     print("Generating sequence....")
@@ -124,7 +125,9 @@ def generate_conditional_sequence(
         prime=prime,
     )
 
+    # Determine the length based on non-zero values in text_mask
     length = len(text_mask.nonzero())
+    # Print the input sequence using idx_to_char mapping (converted from tensor to numpy)
     print("Input seq: ", "".join(idx_to_char(text[0].detach().cpu().numpy()))[:length])
     print("Length of input sequence: ", text[0].shape[0])
 

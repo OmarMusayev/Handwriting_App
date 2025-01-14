@@ -235,7 +235,7 @@ def generate():
 
         # Now generate handwriting
         save_path = os.path.join(tmp_dir)
-        n_samples = 5
+        n_samples = 3
         print("Real text length:", len(list(real_text)), "Content:", real_text)
 
         generate_handwriting(

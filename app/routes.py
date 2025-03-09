@@ -15,6 +15,13 @@ load_dotenv()
 flask_app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 flask_app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "fallback_secret")
+
+# Configure disk storage path
+DISK_STORAGE_PATH = "/disk"  # Render's disk storage path
+UPLOADS_PATH = os.path.join(DISK_STORAGE_PATH, "uploads")
+# Ensure the uploads directory exists
+os.makedirs(UPLOADS_PATH, exist_ok=True)
+
 ###################################
 # 1) Define db & bcrypt FIRST
 ###################################
@@ -103,7 +110,7 @@ def logout():
 
 
 # ------------------------------------------------------------------
-# ABOUT / HOME (existing route)
+# ABOUT / HOME 
 # ------------------------------------------------------------------
 @flask_app.route("/", methods=["GET"])
 @flask_app.route("/login", methods=["GET"])
@@ -117,7 +124,7 @@ def index():
 
 
 # ------------------------------------------------------------------
-# DRAW (WRITE) (existing)
+# DRAW (WRITE) 
 # ------------------------------------------------------------------
 @flask_app.route("/draw", methods=["GET"])
 def draw():
@@ -127,61 +134,68 @@ def draw():
 
 
 # ------------------------------------------------------------------
-# UPLOAD STYLE (existing)
+# UPLOAD STYLE 
 # ------------------------------------------------------------------
 @flask_app.route("/upload_style", methods=["POST"])
 def submit_style_data():
-    data = request.get_json()
-    path = data["path"]
-    text = data["text"]
-    if not path:
-        return jsonify({"redirect": url_for("draw"), "message": "Please enter some style"})
+    try:
+        data = request.get_json()
+        path = data.get("path", "")
+        text = data.get("text", "")
+        
+        if not path:
+            return jsonify({"redirect": url_for("draw"), "message": "Please enter some style"})
 
-    id = str(uuid.uuid4())
-    session["id"] = id
-    tmp_dir = os.path.join(flask_app.root_path, "static", "uploads", id)
-    if not os.path.exists(tmp_dir):
-        os.makedirs(tmp_dir)
-    os.chmod(tmp_dir, 0o777)
+        id = str(uuid.uuid4())
+        session["id"] = id
+        
+        # Use the disk storage path
+        tmp_dir = os.path.join(UPLOADS_PATH, id)
+        os.makedirs(tmp_dir, exist_ok=True)
+        os.chmod(tmp_dir, 0o777)
 
-    text_path = os.path.join(tmp_dir, "inpText.txt")
-    with open(text_path, "w") as f:
-        f.write(text)
+        # Save input text
+        text_path = os.path.join(tmp_dir, "inpText.txt")
+        with open(text_path, "w") as f:
+            f.write(text)
 
-    stroke = path_string_to_stroke(path, str_len=len(list(text)), down_sample=True)
-    save_path = os.path.join(tmp_dir, "style.npy")
-    np.save(save_path, stroke, allow_pickle=True)
+        # Process and save stroke data
+        stroke = path_string_to_stroke(
+            path, str_len=len(list(text)), down_sample=True
+        )
+        save_path = os.path.join(tmp_dir, "style.npy")
+        np.save(save_path, stroke, allow_pickle=True)
 
-    plot_stroke(stroke.astype(np.float32), os.path.join(tmp_dir, "original.png"))
+        # Generate preview image
+        plot_stroke(stroke.astype(np.float32), os.path.join(tmp_dir, "original.png"))
 
-    return jsonify({"redirect": url_for("generate"), "message": ""})
+        return jsonify({"redirect": url_for("generate"), "message": ""})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ------------------------------------------------------------------
-# GENERATE (HANDWRITING) (existing)
+# GENERATE (HANDWRITING) 
 # ------------------------------------------------------------------
 @flask_app.route("/generate", methods=["GET", "POST"])
 def generate():
-    default_style_path = os.path.join(
-        flask_app.root_path, "static/uploads/default_style.npy"
-    )
+    # Default style paths now point to disk storage
+    default_style_path = os.path.join(flask_app.root_path, "static/uploads/default_style.npy")
     # Encode default image
     with open(os.path.join(flask_app.root_path, "static/uploads/default.png"), "rb") as imgfile:
         org_img = base64.b64encode(imgfile.read())
     org_src = "data:image/png;base64,{}".format(org_img.decode("ascii"))
 
     if request.method == "POST":
-        text = request.form["text"]
-        bias = float(request.form["bias"])
-        style_option = request.form["styleOptions"]
-        print(f"bias:{bias}, style_option:{style_option}")
-
-        if text == "":
-            message = "Please enter some text"
+        text = request.form.get("text", "")
+        bias = float(request.form.get("bias", 1.0))
+        style_option = request.form.get("styleOptions", "defaultStyle")
+        
+        if not text:
             return render_template(
                 "generate.html",
                 title="Generate",
-                message=message,
+                message="Please enter some text",
                 text="",
                 org_src=org_src,
                 samples="",
@@ -195,9 +209,8 @@ def generate():
             if "id" not in session:
                 session["id"] = str(uuid.uuid4())
 
-            tmp_dir = os.path.join(flask_app.root_path, "static", "uploads", session["id"])
-            if not os.path.exists(tmp_dir):
-                os.makedirs(tmp_dir)
+            tmp_dir = os.path.join(UPLOADS_PATH, session["id"])
+            os.makedirs(tmp_dir, exist_ok=True)
             os.chmod(tmp_dir, 0o777)
 
         # If user picks your style but no session ID
@@ -212,7 +225,7 @@ def generate():
 
         # If user picks your style and session is set
         elif style_option == "yourStyle":
-            tmp_dir = os.path.join(flask_app.root_path, "static", "uploads", session["id"])
+            tmp_dir = os.path.join(UPLOADS_PATH, session["id"])
             style_path = os.path.join(tmp_dir, "style.npy")
             if not os.path.exists(style_path):
                 return render_template(
@@ -222,6 +235,7 @@ def generate():
                     message="Please go to Write and add some style.",
                     org_src=org_src,
                 )
+                
             org_img_path = os.path.join(tmp_dir, "original.png")
             if os.path.exists(org_img_path):
                 with open(org_img_path, "rb") as imgfile:
@@ -235,8 +249,7 @@ def generate():
 
         # Now generate handwriting
         save_path = os.path.join(tmp_dir)
-        n_samples = 3
-        print("Real text length:", len(list(real_text)), "Content:", real_text)
+        n_samples = 5
 
         generate_handwriting(
             char_seq=text,
@@ -269,7 +282,7 @@ def generate():
     # GET request
     else:
         if "id" in session:
-            tmp_dir = os.path.join(flask_app.root_path, "static", "uploads", session["id"])
+            tmp_dir = os.path.join(UPLOADS_PATH, session["id"])
             org_img_path = os.path.join(tmp_dir, "original.png")
             if os.path.exists(org_img_path):
                 with open(org_img_path, "rb") as imgfile:
@@ -309,12 +322,27 @@ def save_sample():
         flash("No image data provided. Unable to save.", "danger")
         return redirect(url_for("generate"))
 
-    # Create a new 'SavedSample' row
-    # For a small project, you can store the entire base64 or data URI in 'image_path'.
-    # For larger images, consider storing the file on disk/S3 and just saving the path.
+    # Save to disk storage if it's a file path, not just an image URI
+    if "id" in session and not image_data.startswith("data:image"):
+        user_id = session["user_id"]
+        user_dir = os.path.join(UPLOADS_PATH, f"user_{user_id}")
+        os.makedirs(user_dir, exist_ok=True)
+        
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        image_path = os.path.join(user_dir, f"{file_id}.png")
+        
+        # Copy the file from temp directory to user directory
+        with open(image_data, "rb") as src_file:
+            with open(image_path, "wb") as dst_file:
+                dst_file.write(src_file.read())
+                
+        # Store the path in database
+        image_data = image_path
+
     new_sample = SavedSample(
         user_id=session["user_id"],
-        image_path=image_data  # storing the entire data URI or a path
+        image_path=image_data  
     )
     db.session.add(new_sample)
     db.session.commit()

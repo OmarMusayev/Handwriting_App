@@ -1,2 +1,93 @@
 <!DOCTYPE html>
-<html><body><h1>Hand Magic — coming soon</h1></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hand Magic</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <span class="logo">✦ HAND MAGIC ✦</span>
+    <span class="credit">Made by Omar Musayev</span>
+  </header>
+
+  <!-- Studio -->
+  <div class="studio">
+
+    <!-- Style list panel -->
+    <div class="card">
+      <div class="card-title">STYLE LAB</div>
+      <div id="style-list" class="style-list">
+        <div class="hint">No styles yet.<br>Draw one below!</div>
+      </div>
+      <button class="btn btn-magenta" id="btn-new-style" style="margin-top:0.8rem;width:100%;">
+        + NEW STYLE
+      </button>
+    </div>
+
+    <!-- Canvas panel -->
+    <div class="card" id="canvas-panel">
+      <div class="card-title">DRAW YOUR STYLE</div>
+      <p class="hint">Write a few words — the model learns your stroke style.</p>
+      <input type="text" id="priming-text" placeholder="e.g. hello world" style="margin-bottom:0.7rem;">
+      <svg
+        id="draw-canvas"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 800 160"
+        preserveAspectRatio="none"
+      >
+        <path id="draw-path" d="" fill="none" stroke="#00f5ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="row-btns">
+        <button class="btn" id="btn-clear-canvas">CLEAR</button>
+        <button class="btn" id="btn-save-style">SAVE STYLE</button>
+      </div>
+      <div class="status-msg" id="canvas-msg"></div>
+    </div>
+
+  </div>
+
+  <!-- Generate -->
+  <section>
+    <div class="card">
+      <div class="card-title">GENERATE</div>
+
+      <input type="text" id="gen-text" placeholder="Enter text to synthesize..." style="margin-bottom:0.8rem;">
+
+      <div class="hint">STYLE</div>
+      <div class="style-pills" id="style-pills">
+        <span class="style-pill selected" data-style-id="default">Default</span>
+      </div>
+
+      <div class="bias-row">
+        <label>BIAS</label>
+        <input type="range" id="bias-range" min="0" max="10" step="0.5" value="5">
+        <span id="bias-val">5.0</span>
+      </div>
+
+      <button class="btn" id="btn-generate" style="min-width:180px;">▶ SYNTHESIZE</button>
+      <div class="status-msg" id="gen-msg"></div>
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="results-grid" id="results-grid"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <img id="lightbox-img" src="" alt="Generated handwriting">
+</div>
+
+<script src="/static/js/studio.js"></script>
+<script src="/static/js/generate.js"></script>
+</body>
+</html>

@@ -1,15 +1,16 @@
 FROM python:3.12-slim
 
-# 1. Set working directory
 WORKDIR /app
 
-# 2. Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install system deps for matplotlib/Pillow
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/*
 
-# 3. Copy source code
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir -e ".[dev]"
+
 COPY . .
 
-# 4. Launch Gunicorn, pointing at the flask_app in main.py
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:8000", "main:flask_app"]
+EXPOSE 8000
 
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

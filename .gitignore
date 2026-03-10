@@ -112,3 +112,4 @@ webroot/
 *.bak
 .env
 *.log
+.worktrees/

@@ -198,6 +198,17 @@ def compute_loss(
 # Training loop
 # ---------------------------------------------------------------------------
 
+def _mps_mem_str(device):
+    """Return current MPS allocated memory as a human-readable string, or '' if unavailable."""
+    try:
+        if device.type == "mps":
+            gb = torch.mps.current_allocated_memory() / 1024 ** 3
+            return f"mem={gb:.1f}GB"
+    except Exception:
+        pass
+    return ""
+
+
 def train_epoch(
     model: nn.Module,
     loader: DataLoader,
@@ -205,17 +216,22 @@ def train_epoch(
     device: torch.device,
     beta: float,
     grad_clip: float = 1.0,
+    use_tqdm: bool = False,
 ) -> float:
     """Run one full training epoch.
 
     Returns:
         Average total loss across all batches.
     """
+    from tqdm import tqdm
+
     model.train()
     total_loss = 0.0
     num_batches = 0
 
-    for batch in loader:
+    it = tqdm(loader, desc="train", leave=False) if use_tqdm else loader
+
+    for batch in it:
         # Move tensors to device
         style_strokes = batch["style_strokes"].to(device)
         target_strokes = batch["target_strokes"].to(device)
@@ -238,6 +254,10 @@ def train_epoch(
 
         total_loss += loss.item()
         num_batches += 1
+
+        if use_tqdm:
+            mem = _mps_mem_str(device)
+            it.set_postfix(loss=f"{loss.item():.4f}", **({mem.split("=")[0]: mem.split("=")[1]} if mem else {}))
 
     return total_loss / max(num_batches, 1)
 
@@ -280,6 +300,7 @@ def validation_epoch(
             num_batches += 1
 
     return total_loss / max(num_batches, 1)
+
 
 
 # ---------------------------------------------------------------------------
@@ -328,6 +349,7 @@ def argparser():
     p.add_argument("--max_stroke_len", type=int, default=1000)
     p.add_argument("--resume", action="store_true", help="Resume from checkpoint_latest.pt")
     p.add_argument("--bias", type=float, default=1.0, help="Sampling bias for mid-epoch generation")
+    p.add_argument("--tqdm", action="store_true", help="Show per-batch progress bar with loss and GPU memory")
     return p.parse_args()
 
 
@@ -409,7 +431,7 @@ def main():
     for epoch in range(start_epoch, args.epochs):
         beta = get_beta(epoch)
 
-        train_loss = train_epoch(model, train_loader, optimizer, device, beta, args.grad_clip)
+        train_loss = train_epoch(model, train_loader, optimizer, device, beta, args.grad_clip, use_tqdm=args.tqdm)
         val_loss   = validation_epoch(model, valid_loader, device, beta)
         scheduler.step()
 

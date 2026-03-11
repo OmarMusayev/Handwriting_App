@@ -318,6 +318,7 @@ class HandWritingSynthesisTransformer(nn.Module):
         Returns:
             numpy array of shape (1, total_steps, 3)
         """
+        assert text.shape[0] == 1, "generate() only supports batch_size=1"
         self.EOS = False
 
         text_embeddings = self.text_encoder(text, text_mask)              # (1, text_len, d_model)

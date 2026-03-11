@@ -106,29 +106,11 @@
   updateBtn(document.documentElement.getAttribute('data-theme') || 'synth');
 
   window.toggleTheme = function () {
-    if (busy) return;
-    busy = true;
-
-    var current = document.documentElement.getAttribute('data-theme') || 'synth';
+    var current = document.documentElement.getAttribute('data-theme') || 'minimal';
     var next = current === 'synth' ? 'minimal' : 'synth';
-
-    // Phase 1: sweep down (300ms)
-    wipe.className = 'wipe-down';
-
-    setTimeout(function () {
-      // Swap theme while screen is covered
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('hm-theme', next);
-      updateBtn(next);
-
-      // Phase 2: slide off bottom (300ms)
-      wipe.className = 'wipe-off';
-
-      setTimeout(function () {
-        wipe.className = '';
-        busy = false;
-      }, 310);
-    }, 310);
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('hm-theme', next);
+    updateBtn(next);
   };
 })();
 </script>

@@ -65,10 +65,11 @@ body::after {
 /* Header */
 header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   padding: 1.8rem 0 1.2rem;
   border-bottom: 1px solid var(--grid);
+  min-height: 5rem;
 }
 
 .logo {
@@ -516,7 +517,7 @@ input[type="text"], .text-input, #draw-canvas,
   display: none;
 }
 
-/* Logo: black text, no gradient */
+/* Logo: same size, black text, no gradient/glow */
 [data-theme="minimal"] .logo {
   background: none;
   -webkit-background-clip: unset;
@@ -525,9 +526,8 @@ input[type="text"], .text-input, #draw-canvas,
   animation: none;
   filter: none;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 1.4rem;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 /* Cards: flat white, thin gray border */

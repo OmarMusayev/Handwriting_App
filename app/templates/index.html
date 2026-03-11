@@ -97,41 +97,38 @@
 (function () {
   var btn = document.getElementById('btn-theme');
   var wipe = document.getElementById('theme-wipe');
+  var busy = false;
 
   function updateBtn(theme) {
-    btn.textContent = theme === 'synth' ? '[ MINIMAL ]' : '[ ✦ SYNTH ]';
+    btn.textContent = theme === 'synth' ? '[ MINIMAL ]' : '[ \u2726 SYNTH ]';
   }
 
-  // Set button label on load
   updateBtn(document.documentElement.getAttribute('data-theme') || 'synth');
 
   window.toggleTheme = function () {
+    if (busy) return;
+    busy = true;
+
     var current = document.documentElement.getAttribute('data-theme') || 'synth';
     var next = current === 'synth' ? 'minimal' : 'synth';
 
-    // Phase 1: wipe sweeps down
-    wipe.className = '';
-    void wipe.offsetWidth; // force reflow
-    wipe.classList.add('wipe-down');
+    // Phase 1: sweep down (300ms)
+    wipe.className = 'wipe-down';
 
-    wipe.addEventListener('animationend', function onDown() {
-      wipe.removeEventListener('animationend', onDown);
-
-      // Swap theme while covered
+    setTimeout(function () {
+      // Swap theme while screen is covered
       document.documentElement.setAttribute('data-theme', next);
       localStorage.setItem('hm-theme', next);
       updateBtn(next);
 
-      // Phase 2: wipe slides off bottom
-      wipe.className = '';
-      void wipe.offsetWidth;
-      wipe.classList.add('wipe-off');
+      // Phase 2: slide off bottom (300ms)
+      wipe.className = 'wipe-off';
 
-      wipe.addEventListener('animationend', function onOff() {
-        wipe.removeEventListener('animationend', onOff);
+      setTimeout(function () {
         wipe.className = '';
-      });
-    });
+        busy = false;
+      }, 310);
+    }, 310);
   };
 })();
 </script>

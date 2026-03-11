@@ -591,10 +591,10 @@ section { margin-bottom: 0; }
 /* ── Scanline wipe overlay ────────────────────────────────────── */
 #theme-wipe {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 9999;
   pointer-events: none;
-  transform: translateY(-100%);
+  display: none;
   background: repeating-linear-gradient(
     to bottom,
     #000 0px,
@@ -605,10 +605,12 @@ section { margin-bottom: 0; }
 }
 
 #theme-wipe.wipe-down {
+  display: block;
   animation: wipeDown 0.3s ease-in forwards;
 }
 
 #theme-wipe.wipe-off {
+  display: block;
   animation: wipeOff 0.3s ease-out forwards;
 }
 

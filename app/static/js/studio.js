@@ -167,13 +167,28 @@
     container.querySelectorAll(".btn-delete-style").forEach((el) => {
       el.addEventListener("click", () => deleteStyle(el.dataset.id));
     });
+    // Load previews asynchronously
+    stylesList.forEach((s) => loadPreview(s.id));
+  }
+
+  async function loadPreview(id) {
+    try {
+      const resp = await fetch(`/api/styles/${id}/preview`);
+      if (!resp.ok) return;
+      const { data_url } = await resp.json();
+      const img = document.querySelector(`.style-card[data-id="${id}"] .style-preview`);
+      if (img) img.src = data_url;
+    } catch (_) {}
   }
 
   function styleCard(s) {
     return `
       <div class="style-card" data-id="${s.id}">
-        <span class="style-name" data-id="${s.id}" title="Click to rename">${escHtml(s.name)}</span>
-        <button class="btn-delete-style" data-id="${s.id}" title="Delete style">✕</button>
+        <img class="style-preview" src="" alt="${escHtml(s.name)}" />
+        <div class="style-card-row">
+          <span class="style-name" data-id="${s.id}" title="Click to rename">${escHtml(s.name)}</span>
+          <button class="btn-delete-style" data-id="${s.id}" title="Delete style">✕</button>
+        </div>
       </div>`;
   }
 

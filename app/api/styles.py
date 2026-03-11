@@ -1,4 +1,5 @@
 # app/api/styles.py
+import base64
 import json
 import uuid
 import shutil
@@ -112,3 +113,13 @@ async def delete_style(style_id: str, request: Request, response: Response):
         raise HTTPException(status_code=404, detail="Style not found")
     shutil.rmtree(sd)
     return {"deleted": style_id}
+
+
+@router.get("/styles/{style_id}/preview")
+async def style_preview(style_id: str, request: Request, response: Response):
+    token = get_or_create_session(request, response)
+    preview = _styles_dir(token) / style_id / "preview.png"
+    if not preview.exists():
+        raise HTTPException(status_code=404, detail="Preview not found")
+    data = base64.b64encode(preview.read_bytes()).decode("ascii")
+    return {"data_url": f"data:image/png;base64,{data}"}

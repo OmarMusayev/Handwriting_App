@@ -100,6 +100,43 @@ def test_generate_conditional_sequence_transformer_integration():
     assert gen_seq.shape[2] == 3, f"Expected stroke dim=3, got {gen_seq.shape[2]}"
 
 
+def test_generate_conditional_sequence_transformer_none_prime_seq():
+    """When prime_seq=None, the adapter should create a zero style tensor (1, 1, 3)."""
+    import generate as gen_mod
+
+    captured_style = {}
+
+    class CapturingFakeTransformer(HandWritingSynthesisTransformer):
+        def __init__(self):
+            pass
+
+        def generate(self, text, text_mask, style_strokes, bias, max_steps):
+            captured_style["style_strokes"] = style_strokes
+            return np.zeros((1, 3, 3))
+
+        def eval(self):
+            return self
+
+    model = CapturingFakeTransformer()
+    gen_seq, phi = generate_conditional_sequence(
+        model_or_path=model,
+        char_seq="hi",
+        device="cpu",
+        char_to_id={"h": 0, "i": 1, " ": 2},
+        idx_to_char=lambda x: [str(i) for i in x],
+        bias=1.0,
+        prime=False,
+        prime_seq=None,
+        real_text="",
+        is_map=False,
+    )
+
+    style = captured_style["style_strokes"]
+    assert style.shape == (1, 1, 3), f"Expected zeros(1,1,3), got {style.shape}"
+    assert style.sum().item() == 0.0, "Expected all-zero style strokes for None prime_seq"
+    assert phi == []
+
+
 # ---------------------------------------------------------------------------
 # Test 4 (revised): ModelSingleton returns transformer model in eval mode
 # ---------------------------------------------------------------------------

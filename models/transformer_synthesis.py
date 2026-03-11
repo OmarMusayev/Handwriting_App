@@ -60,3 +60,62 @@ class TextEncoder(nn.Module):
         # PyTorch key_padding_mask: True = ignore (padding)
         padding_mask = (text_mask == 0)
         return self.encoder(x, src_key_padding_mask=padding_mask)
+
+
+class StyleVAE(nn.Module):
+    """
+    Encodes a stroke prefix sequence into a latent style vector z.
+
+    Architecture:
+      - Bidirectional LSTM, 2 layers, hidden=256
+      - Final layer hidden state: forward + backward concatenated → 512-dim
+      - fc_mu:     Linear(512, 64) → μ
+      - fc_logvar: Linear(512, 64) → log σ²
+
+    forward(strokes, training=True) → (z, mu, logvar)
+      - strokes: (batch, seq_len, 3)  [eos, dx, dy]
+      - training=True:  z = μ + σ * ε,  ε ~ N(0, I)  (reparameterization)
+      - training=False: z = μ  (deterministic)
+    """
+
+    def __init__(self, input_size: int = 3, hidden_size: int = 256, num_layers: int = 2, latent_dim: int = 64):
+        super().__init__()
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            bidirectional=True,
+        )
+        # Final layer forward + backward → 512-dim
+        self.fc_mu = nn.Linear(hidden_size * 2, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_size * 2, latent_dim)
+
+    def forward(self, strokes: torch.Tensor, training: bool = True):
+        """
+        Args:
+            strokes:  (batch, seq_len, 3)
+            training: if True, sample via reparameterization; if False, return mu
+        Returns:
+            z:      (batch, latent_dim)
+            mu:     (batch, latent_dim)
+            logvar: (batch, latent_dim)
+        """
+        # h_n: (num_layers * num_directions, batch, hidden_size) = (4, batch, 256)
+        _, (h_n, _) = self.lstm(strokes)
+
+        # h_n[-2]: final layer forward direction  (batch, 256)
+        # h_n[-1]: final layer backward direction (batch, 256)
+        h_final = torch.cat([h_n[-2], h_n[-1]], dim=1)  # (batch, 512)
+
+        mu = self.fc_mu(h_final)        # (batch, 64)
+        logvar = self.fc_logvar(h_final)  # (batch, 64)
+
+        if training:
+            std = torch.exp(0.5 * logvar)
+            eps = torch.randn_like(std)
+            z = mu + std * eps
+        else:
+            z = mu
+
+        return z, mu, logvar

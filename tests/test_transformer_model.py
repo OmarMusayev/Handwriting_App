@@ -1,7 +1,7 @@
 # tests/test_transformer_model.py
 import torch
 import torch.nn as nn
-from models.transformer_synthesis import TextEncoder, PositionalEncoding, StyleVAE
+from models.transformer_synthesis import TextEncoder, PositionalEncoding, StyleVAE, StrokeDecoder
 
 
 def test_positional_encoding_output_shape():
@@ -96,3 +96,73 @@ def test_style_vae_output_is_finite_with_extreme_logvar():
     strokes = torch.randn(2, 15, 3)
     z, mu, logvar = vae(strokes, use_sampling=True)
     assert torch.isfinite(z).all(), "z must be finite even with extreme logvar"
+
+
+# --- StrokeDecoder tests ---
+
+def test_stroke_decoder_output_shape():
+    """Output must be (batch, seq_len, d_model=256)."""
+    decoder = StrokeDecoder()
+    decoder.eval()
+    batch, seq_len, text_len = 2, 10, 15
+    strokes = torch.randn(batch, seq_len, 3)
+    text_embeddings = torch.randn(batch, text_len, 256)
+    text_padding_mask = torch.ones(batch, text_len)
+    z = torch.randn(batch, 64)
+    with torch.no_grad():
+        out = decoder(strokes, text_embeddings, text_padding_mask, z)
+    assert out.shape == (batch, seq_len, 256), f"Expected ({batch}, {seq_len}, 256), got {out.shape}"
+
+
+def test_stroke_decoder_causal_mask():
+    """Step 0 output must be identical when processing seq_len=1 vs seq_len=2 (causality)."""
+    decoder = StrokeDecoder()
+    decoder.eval()
+    batch, text_len = 1, 8
+    text_embeddings = torch.randn(batch, text_len, 256)
+    text_padding_mask = torch.ones(batch, text_len)
+    z = torch.randn(batch, 64)
+    # Two strokes: only use the first to check causality
+    strokes_2 = torch.randn(batch, 2, 3)
+    strokes_1 = strokes_2[:, :1, :]  # first step only
+
+    with torch.no_grad():
+        out_len1 = decoder(strokes_1, text_embeddings, text_padding_mask, z)
+        out_len2 = decoder(strokes_2, text_embeddings, text_padding_mask, z)
+
+    # Step 0 output must match regardless of whether step 1 is present
+    assert torch.allclose(out_len1[:, 0, :], out_len2[:, 0, :], atol=1e-5), \
+        "Causal mask violated: step 0 output changed when step 1 was added"
+
+
+def test_stroke_decoder_text_padding_mask():
+    """Partial text padding mask must not cause crash or NaN in output."""
+    decoder = StrokeDecoder()
+    decoder.eval()
+    batch, seq_len, text_len = 2, 5, 12
+    strokes = torch.randn(batch, seq_len, 3)
+    text_embeddings = torch.randn(batch, text_len, 256)
+    # Only first 6 text positions are valid
+    text_padding_mask = torch.zeros(batch, text_len)
+    text_padding_mask[:, :6] = 1.0
+    z = torch.randn(batch, 64)
+    with torch.no_grad():
+        out = decoder(strokes, text_embeddings, text_padding_mask, z)
+    assert out.shape == (batch, seq_len, 256)
+    assert torch.isfinite(out).all(), "Output must be finite with partial padding mask"
+
+
+def test_stroke_decoder_past_kv_none_works():
+    """Passing past_kv=None must produce the same output as omitting it entirely."""
+    decoder = StrokeDecoder()
+    decoder.eval()
+    batch, seq_len, text_len = 2, 7, 10
+    strokes = torch.randn(batch, seq_len, 3)
+    text_embeddings = torch.randn(batch, text_len, 256)
+    text_padding_mask = torch.ones(batch, text_len)
+    z = torch.randn(batch, 64)
+    with torch.no_grad():
+        out_default = decoder(strokes, text_embeddings, text_padding_mask, z)
+        out_none = decoder(strokes, text_embeddings, text_padding_mask, z, past_kv=None)
+    assert torch.equal(out_default, out_none), \
+        "past_kv=None must produce identical output to calling without past_kv"

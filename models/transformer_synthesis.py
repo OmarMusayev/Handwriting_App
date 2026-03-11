@@ -119,3 +119,83 @@ class StyleVAE(nn.Module):
             z = mu
 
         return z, mu, logvar
+
+
+class StrokeDecoder(nn.Module):
+    """
+    Autoregressive causal Transformer decoder for stroke sequences.
+
+    At each step the stroke vector (3-dim) is concatenated with style vector z
+    (latent_dim-dim) and projected to d_model. A causal self-attention mask
+    prevents attending to future tokens. Cross-attention attends to the text
+    embeddings produced by TextEncoder.
+
+    forward(strokes, text_embeddings, text_padding_mask, z, past_kv=None)
+        -> (batch, seq_len, d_model)
+
+    past_kv is accepted but currently ignored (reserved for future KV-cache
+    optimisation). Callers may always pass past_kv=None.
+    """
+
+    def __init__(
+        self,
+        d_model: int = 256,
+        nhead: int = 8,
+        num_layers: int = 6,
+        ff_dim: int = 512,
+        dropout: float = 0.1,
+        latent_dim: int = 64,
+        stroke_dim: int = 3,
+    ):
+        super().__init__()
+        self.d_model = d_model
+
+        # Project (stroke_dim + latent_dim) -> d_model
+        self.input_proj = nn.Linear(stroke_dim + latent_dim, d_model)
+        self.pos_enc = PositionalEncoding(d_model, dropout)
+
+        decoder_layer = nn.TransformerDecoderLayer(
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=ff_dim,
+            dropout=dropout,
+            batch_first=True,
+            norm_first=True,  # Pre-LN, consistent with TextEncoder
+        )
+        self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+
+    def forward(
+        self,
+        strokes: torch.Tensor,            # (batch, seq_len, 3)
+        text_embeddings: torch.Tensor,    # (batch, text_len, d_model)
+        text_padding_mask: torch.Tensor,  # (batch, text_len) float, 1=valid 0=padding
+        z: torch.Tensor,                  # (batch, latent_dim)
+        past_kv=None,                     # reserved for KV cache; ignored for now
+    ) -> torch.Tensor:                    # (batch, seq_len, d_model)
+        seq_len = strokes.size(1)
+
+        # Expand z to match sequence length, then concatenate with strokes
+        # z: (batch, latent_dim) -> (batch, seq_len, latent_dim)
+        z_expanded = z.unsqueeze(1).expand(-1, seq_len, -1)
+        # (batch, seq_len, stroke_dim + latent_dim)
+        x = torch.cat([strokes, z_expanded], dim=-1)
+
+        # Project to d_model and add positional encoding
+        x = self.input_proj(x)        # (batch, seq_len, d_model)
+        x = self.pos_enc(x)           # (batch, seq_len, d_model)
+
+        # Causal self-attention mask: upper-triangular with -inf above diagonal
+        causal_mask = nn.Transformer.generate_square_subsequent_mask(
+            seq_len, device=strokes.device
+        )
+
+        # Convert text_padding_mask to PyTorch convention: True = ignore (padding)
+        memory_key_padding_mask = (text_padding_mask == 0)  # (batch, text_len)
+
+        out = self.decoder(
+            tgt=x,
+            memory=text_embeddings,
+            tgt_mask=causal_mask,
+            memory_key_padding_mask=memory_key_padding_mask,
+        )
+        return out  # (batch, seq_len, d_model)

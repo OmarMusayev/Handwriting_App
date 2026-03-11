@@ -12,14 +12,14 @@
 The current model (Graves 2013 LSTM + Gaussian Window Attention + MDN) has three concrete quality issues:
 
 1. **Shaky strokes** — LSTM struggles with long-range stroke dependencies
-2. **Text fidelity** — hand-designed Gaussian window attention misses characters, especially on longer strings
+2. **Text fidelity** — hand-designed Gaussian window attention misses characters on longer strings
 3. **Style drift** — style priming via hidden state copy fades after the first few strokes
 
 ---
 
 ## Solution
 
-Replace the LSTM backbone with a Transformer encoder-decoder architecture, and replace hidden-state style priming with a proper VAE-based style encoder. Keep the MDN output head (with Cholesky sampling bug fixed).
+Replace the LSTM backbone with a Transformer encoder-decoder, and replace hidden-state style priming with a VAE-based style encoder. Keep the MDN output head with the Cholesky sampling bug fixed (sampling-only fix — output layout unchanged). The existing data pipeline, loss function, and app are preserved with minimal targeted changes.
 
 ---
 
@@ -35,8 +35,7 @@ Replace the LSTM backbone with a Transformer encoder-decoder architecture, and r
 ```
 
 ### Text Encoder
-- Transformer encoder, 4 layers
-- d_model=256, nhead=8, ff_dim=512
+- Transformer encoder, 4 layers, d_model=256, nhead=8, ff_dim=512
 - Learned character embeddings (replaces one-hot + Gaussian window)
 - Output: sequence of context vectors (text_len × 256) for decoder cross-attention
 
@@ -44,22 +43,25 @@ Replace the LSTM backbone with a Transformer encoder-decoder architecture, and r
 - Bidirectional LSTM, 2 layers, hidden=256
 - Final hidden state → two linear projections → μ (64-dim), log σ (64-dim)
 - Training: sample z ~ N(μ, σ) via reparameterization trick
-- Inference: use μ directly (deterministic, no randomness)
-- Input: a held-out portion of the same writer's strokes (different from the target)
+- Inference: use μ directly (deterministic, no sampling noise)
+- Runs per-request at inference time (user draws new strokes each request)
+- Included in INT8 quantization at deployment
+
+### Style Input During Training
+The IAM dataset has no writer-identity metadata. The workaround: for each stroke sample, split the sequence at a random point between 20–40% of its length. The first portion is fed to the Style VAE as style context; the remaining portion is the generation target. This forces the VAE to encode general stroke character (slant, pressure, rhythm) from a short prefix, and the decoder generates the rest. The split point is randomized per epoch to prevent overfitting to a fixed split.
 
 ### Stroke Decoder
-- Autoregressive Transformer decoder, 6 layers
-- d_model=256, nhead=8, ff_dim=512
-- Causal self-attention on previous strokes
+- Autoregressive Transformer decoder, 6 layers, d_model=256, nhead=8, ff_dim=512
+- Causal self-attention on previous strokes (upper-triangular causal mask combined with key-padding mask over zero-padded positions, following standard `nn.TransformerDecoder` conventions)
 - Cross-attention to text_embeddings at every layer
-- Style vector z added to stroke input embeddings at every step (not just first)
-- KV cache at inference: each step is O(1) key/value lookups
+- Style vector z added to stroke input projection at every step
+- KV cache at inference: previous stroke K/V tensors are cached; each new step is O(T) in self-attention over cached history but avoids redundant full re-encoding of all previous steps
 
 ### MDN Head
 - Linear(256 → 121)
-- Same output split: 1 EOS + 6×20 mixture params (weights, μ₁, μ₂, σ₁, σ₂, ρ)
-- **Cholesky fix applied**: sampling uses L (Cholesky factor) not Σ directly
-- 20 mixture components
+- Output split: 1 EOS + 6×20 mixture params (weights, μ₁, μ₂, σ₁, σ₂, ρ)
+- Output layout and `compute_nll_loss` are **unchanged**
+- **Cholesky sampling fix**: `sample_from_out_dist` is updated to use the Cholesky factor L of the covariance matrix instead of multiplying by Σ directly. This is a sampling-only fix; the (σ₁, σ₂, ρ) parameterization and 121-dim layout remain the same.
 
 **Total parameters:** ~12M (FP32), ~3MB (INT8 quantized)
 
@@ -69,45 +71,47 @@ Replace the LSTM backbone with a Transformer encoder-decoder architecture, and r
 
 ### Training
 ```
-For each batch:
-  style_strokes   → Style VAE → z ~ N(μ, σ)     [held-out portion of writer's strokes]
-  text            → Text Encoder → text_embeddings
-  strokes[0:T-1]  → Stroke Decoder (teacher forcing, cross-attn to text, conditioned on z)
-  strokes[1:T]    → MDN loss targets
+For each batch (batch_size=32):
+  stroke sequence     → split at random 20-40% point
+  style_prefix        → Style VAE → z ~ N(μ, σ)
+  target_strokes[0:T-1] → Stroke Decoder (teacher forcing, cross-attn to text, + z)
+  target_strokes[1:T]   → MDN loss targets
 
 Loss = NLL(MDN) + β · KL(N(μ,σ) || N(0,I))
 ```
 
 ### Inference
 ```
-1. User draws on canvas → style_strokes
-2. Style VAE → z = μ (deterministic)
+1. User draws on canvas → style_strokes (the drawn portion)
+2. Style VAE encoder runs → z = μ (deterministic)
 3. User types text → Text Encoder → text_embeddings
 4. Decoder autoregressively generates (eos, dx, dy) with KV cache
-5. Stop at eos=1 or 600 steps
+5. Stop at eos=1 or MAX_GEN_STEPS (default 600, matching existing config)
 6. Denormalize → plot_stroke → PNG
 ```
+
+**Note on 600-step cap:** The existing app already uses `MAX_GEN_STEPS=600`. The IAM dataset's 95th-percentile stroke length should be verified against this cap before training — if sequences exceed 600 steps consistently, training will use the same cap for consistency with inference.
 
 ### Style Interpolation
 Given two style latents z1, z2:
 ```
 z = (1 - α) · z1 + α · z2
 ```
-Valid because VAE regularizes latent space to be smooth (N(0,I) prior).
+Works because the VAE regularizes the latent space to be smooth (N(0,I) prior).
 
 ---
 
 ## Training Schedule
 
-| Stage | Epochs | β (KL weight) | Notes |
-|---|---|---|---|
-| 1 | 0–20 | 0.0 | Pure reconstruction, decoder stabilizes |
-| 2 | 20–60 | 0.0 → 1.0 (linear) | KL annealing |
-| 3 | 60–100 | 1.0 | LR decay, full VAE |
+| Stage | Epochs | β (KL weight) | Batch size | Notes |
+|---|---|---|---|---|
+| 1 | 0–20 | 0.0 | 32 | Pure reconstruction, decoder stabilizes |
+| 2 | 20–60 | 0.0 → 1.0 (linear) | 32 | KL annealing |
+| 3 | 60–100 | 1.0 | 32 | LR decay, full VAE |
 
 - **Optimizer:** AdamW, lr=1e-3, weight_decay=1e-4
 - **LR schedule:** Cosine annealing over 100 epochs
-- **Gradient clipping:** norm clipping at 1.0 (not value clipping)
+- **Gradient clipping:** global norm clipping at 1.0
 - **Device:** MPS (`torch.device("mps")` on M4 Max)
 - **Estimated training time:** ~3-5 hours total on M4 Max MPS
 
@@ -127,7 +131,7 @@ Saves every epoch to `checkpoints/transformer/checkpoint_latest.pt`:
 }
 ```
 
-Separately saves `checkpoints/transformer/checkpoint_best.pt` when validation loss improves. Resume loads `checkpoint_latest.pt` and starts from `epoch + 1`.
+Separately saves `checkpoints/transformer/checkpoint_best.pt` when validation loss improves. Resume loads `checkpoint_latest.pt` and starts from `epoch + 1`. If killed mid-epoch, that epoch restarts cleanly.
 
 ---
 
@@ -139,6 +143,7 @@ model = torch.quantization.quantize_dynamic(
     model, {torch.nn.Linear, torch.nn.LSTM}, dtype=torch.qint8
 )
 ```
+Covers both the Transformer's Linear layers and the Style VAE's BiLSTM, which runs per-request to encode canvas strokes.
 
 **Expected inference time on i7-1185G7:**
 
@@ -165,19 +170,37 @@ models/transformer_synthesis.py   — TextEncoder, StyleVAE, StrokeDecoder, MDNH
 train_transformer.py              — training script with checkpointing
 ```
 
-### Unchanged files
-```
-app/                              — zero changes
-utils/                            — data pipeline, plot_stroke, MDN loss all reused
-generate.py                       — thin adapter so new model fits existing call signature
+### Minimal changes to existing files
+
+**`app/core/config.py`** — add one field:
+```python
+model_type: str = os.getenv("MODEL_TYPE", "lstm")  # "lstm" or "transformer"
 ```
 
-### Swapping in the app
+**`app/core/singletons.py`** — `ModelSingleton.get()` branches on `model_type`:
+```python
+if model_type == "transformer":
+    from models.transformer_synthesis import HandWritingSynthesisTransformer
+    model = HandWritingSynthesisTransformer(...)
+else:
+    model = HandWritingSynthesisNet(window_size=vocab_size)
+```
+
+**`generate.py`** — `generate_conditional_sequence()` adapter: when the model is a `HandWritingSynthesisTransformer`, `prime_seq` is passed to the Style VAE encoder (not used for LSTM priming), `real_text` is ignored (text conditioning is handled internally), and the `phi` return value is an empty array (attention maps are not meaningful for Transformers). The call signature seen by `app/services/generation.py` is unchanged.
+
+### All other app files
+```
+app/api/          — unchanged
+app/services/     — unchanged
+app/core/session.py — unchanged
+utils/            — unchanged
+```
+
+### Swapping in production
 ```bash
 MODEL_PATH=checkpoints/transformer/checkpoint_best.pt
 MODEL_TYPE=transformer
 ```
-`ModelSingleton` loads whichever type `MODEL_TYPE` specifies. All API routes, job runner, and session logic untouched.
 
 ---
 
@@ -196,4 +219,5 @@ MODEL_TYPE=transformer
 
 - Diffusion-based generation (too slow for CPU inference target)
 - Hierarchical word/stroke decomposition (overengineered for demo)
-- Full app rewrite or frontend changes
+- Changing the frontend or API routes
+- Rewriting the data loading pipeline

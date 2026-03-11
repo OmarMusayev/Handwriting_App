@@ -75,3 +75,37 @@ def test_model_singleton_returns_same_instance():
             m1 = ModelSingleton.get("fake.pt", "cpu", 77)
             m2 = ModelSingleton.get("fake.pt", "cpu", 77)
     assert m1 is m2
+
+
+def test_settings_has_model_type_default_lstm():
+    from app.core.config import settings
+    assert settings.model_type == "lstm"
+
+
+def test_settings_model_type_from_env(monkeypatch):
+    import os
+    import importlib
+    monkeypatch.setenv("MODEL_TYPE", "transformer")
+    import app.core.config as config_module
+    importlib.reload(config_module)
+    assert config_module.settings.model_type == "transformer"
+    # Restore by reloading without the env var after monkeypatch restores it
+    monkeypatch.delenv("MODEL_TYPE", raising=False)
+    importlib.reload(config_module)
+
+
+def test_model_singleton_transformer_branch():
+    from app.core.singletons import ModelSingleton
+    ModelSingleton._model = None
+    mock_model = MagicMock()
+    mock_model.load_state_dict = MagicMock()
+    mock_model.to = MagicMock(return_value=mock_model)
+    mock_model.eval = MagicMock(return_value=mock_model)
+    mock_cls = MagicMock(return_value=mock_model)
+    with patch("models.transformer_synthesis.HandWritingSynthesisTransformer", mock_cls, create=True):
+        with patch("torch.load", return_value={"model_state": {}}):
+            result = ModelSingleton.get("fake.pt", "cpu", 10, model_type="transformer")
+    assert result is mock_model
+    mock_model.load_state_dict.assert_called_once_with({})
+    mock_model.to.assert_called_once_with("cpu")
+    mock_model.eval.assert_called_once()

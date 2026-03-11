@@ -15,6 +15,7 @@ class Settings:
     session_ttl_days: int = int(os.getenv("SESSION_TTL_DAYS", "7"))
     max_styles_per_session: int = int(os.getenv("MAX_STYLES_PER_SESSION", "10"))
     n_samples: int = int(os.getenv("N_SAMPLES", "5"))
+    model_type: str = os.getenv("MODEL_TYPE", "lstm")  # "lstm" or "transformer"
     cookie_name: str = "hm_session"
     cookie_max_age: int = 30 * 24 * 3600  # 30 days
 

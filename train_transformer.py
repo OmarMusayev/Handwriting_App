@@ -408,6 +408,7 @@ def argparser():
     p.add_argument("--data_path", type=str, default="./data/")
     p.add_argument("--checkpoint_dir", type=str, default="checkpoints/transformer/")
     p.add_argument("--epochs", type=int, default=100)
+    p.add_argument("--vocab_size_override", type=int, default=None, help="Force vocab_size (use when resuming old checkpoints without saved vocab)")
     p.add_argument("--batch_size", type=int, default=32)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--weight_decay", type=float, default=1e-4)
@@ -486,6 +487,21 @@ def main():
     valid_loader = DataLoader(valid_ds, batch_size=args.batch_size, shuffle=False,
                               collate_fn=collate_fn, num_workers=0)
 
+    # If resuming, use the vocab_size stored in the checkpoint so the model
+    # architecture matches the saved weights exactly.
+    latest_path = os.path.join(args.checkpoint_dir, "checkpoint_latest.pt")
+    if args.vocab_size_override is not None:
+        vocab_size = args.vocab_size_override
+        print(f"  vocab_size forced to {vocab_size} via --vocab_size_override")
+    elif args.resume and os.path.exists(latest_path):
+        _ckpt = torch.load(latest_path, map_location="cpu", weights_only=False)
+        ckpt_vocab = _ckpt.get("vocab_size", None)
+        if ckpt_vocab is not None and ckpt_vocab != vocab_size:
+            print(f"  vocab_size mismatch (data={vocab_size}, ckpt={ckpt_vocab}) — using checkpoint vocab")
+            vocab_size = ckpt_vocab
+        elif ckpt_vocab is not None:
+            print(f"  Using vocab_size={vocab_size} from checkpoint")
+
     # Model
     model = HandWritingSynthesisTransformer(vocab_size=vocab_size).to(device)
 
@@ -497,7 +513,6 @@ def main():
     best_val_loss = float("inf")
 
     # Resume
-    latest_path = os.path.join(args.checkpoint_dir, "checkpoint_latest.pt")
     if args.resume and os.path.exists(latest_path):
         start_epoch, best_val_loss, _ = load_checkpoint(latest_path, model, optimizer, scheduler, device)
         start_epoch += 1
@@ -528,6 +543,7 @@ def main():
                 "beta": beta,
                 "train_mean": train_mean,
                 "train_std": train_std,
+                "vocab_size": vocab_size,
             },
             latest_path,
         )

@@ -462,11 +462,13 @@ def main():
             char_to_id = _ckpt["char_to_id"]
             vocab_size = len(char_to_id)
             print(f"  Restored char_to_id from checkpoint: vocab_size={vocab_size}")
-        elif "vocab_size" in _ckpt:
-            vocab_size = _ckpt["vocab_size"]
-            # Truncate char_to_id to only the first vocab_size chars (sorted order)
-            char_to_id = {c: i for c, i in char_to_id.items() if i < vocab_size}
-            print(f"  vocab_size from checkpoint: {vocab_size} (char_to_id truncated)")
+        else:
+            # Infer vocab_size directly from the saved embedding weight shape
+            ckpt_vocab = _ckpt["model_state"]["text_encoder.embedding.weight"].shape[0]
+            if ckpt_vocab != vocab_size:
+                print(f"  vocab_size mismatch (data={vocab_size}, ckpt={ckpt_vocab}) — truncating char_to_id")
+                vocab_size = ckpt_vocab
+                char_to_id = {c: i for c, i in char_to_id.items() if i < vocab_size}
         del _ckpt
 
     # Train/valid split (90/10, same as existing pipeline)

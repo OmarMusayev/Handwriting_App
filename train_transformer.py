@@ -453,6 +453,22 @@ def main():
     char_to_id = {c: i for i, c in enumerate(all_chars)}
     vocab_size = len(char_to_id)
 
+    # If resuming, pre-load checkpoint to restore char_to_id and vocab_size
+    # so datasets and model architecture match the saved weights exactly.
+    latest_path = os.path.join(args.checkpoint_dir, "checkpoint_latest.pt")
+    if args.resume and os.path.exists(latest_path):
+        _ckpt = torch.load(latest_path, map_location="cpu", weights_only=False)
+        if "char_to_id" in _ckpt:
+            char_to_id = _ckpt["char_to_id"]
+            vocab_size = len(char_to_id)
+            print(f"  Restored char_to_id from checkpoint: vocab_size={vocab_size}")
+        elif "vocab_size" in _ckpt:
+            vocab_size = _ckpt["vocab_size"]
+            # Truncate char_to_id to only the first vocab_size chars (sorted order)
+            char_to_id = {c: i for c, i in char_to_id.items() if i < vocab_size}
+            print(f"  vocab_size from checkpoint: {vocab_size} (char_to_id truncated)")
+        del _ckpt
+
     # Train/valid split (90/10, same as existing pipeline)
     n = len(strokes)
     n_train = int(0.9 * n)
@@ -486,21 +502,6 @@ def main():
                               collate_fn=collate_fn, num_workers=0)
     valid_loader = DataLoader(valid_ds, batch_size=args.batch_size, shuffle=False,
                               collate_fn=collate_fn, num_workers=0)
-
-    # If resuming, use the vocab_size stored in the checkpoint so the model
-    # architecture matches the saved weights exactly.
-    latest_path = os.path.join(args.checkpoint_dir, "checkpoint_latest.pt")
-    if args.vocab_size_override is not None:
-        vocab_size = args.vocab_size_override
-        print(f"  vocab_size forced to {vocab_size} via --vocab_size_override")
-    elif args.resume and os.path.exists(latest_path):
-        _ckpt = torch.load(latest_path, map_location="cpu", weights_only=False)
-        ckpt_vocab = _ckpt.get("vocab_size", None)
-        if ckpt_vocab is not None and ckpt_vocab != vocab_size:
-            print(f"  vocab_size mismatch (data={vocab_size}, ckpt={ckpt_vocab}) — using checkpoint vocab")
-            vocab_size = ckpt_vocab
-        elif ckpt_vocab is not None:
-            print(f"  Using vocab_size={vocab_size} from checkpoint")
 
     # Model
     model = HandWritingSynthesisTransformer(vocab_size=vocab_size).to(device)
@@ -544,6 +545,7 @@ def main():
                 "train_mean": train_mean,
                 "train_std": train_std,
                 "vocab_size": vocab_size,
+                "char_to_id": char_to_id,
             },
             latest_path,
         )

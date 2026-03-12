@@ -248,6 +248,10 @@ def train_epoch(
 
         loss, _, _ = compute_loss(y_hat, target_strokes, target_mask, mu, logvar, beta)
 
+        if not torch.isfinite(loss):
+            optimizer.zero_grad()
+            continue
+
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()

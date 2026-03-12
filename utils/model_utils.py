@@ -23,19 +23,19 @@ def compute_nll_loss(targets, y_hat, mask, M=20):
     mu_1 = y[2]
     mu_2 = y[3]
 
-    logstd_1 = y[4]
-    logstd_2 = y[5]
+    logstd_1 = y[4].clamp(-5, 5)
+    logstd_2 = y[5].clamp(-5, 5)
 
-    rho = torch.tanh(y[6])
+    rho = torch.tanh(y[6]).clamp(-0.99, 0.99)
 
     log_constant = log_mixture_weights - math.log(2 * math.pi) - logstd_1 - \
-        logstd_2 - 0.5 * torch.log(epsilon + 1 - rho.pow(2))
+        logstd_2 - 0.5 * torch.log(1 - rho.pow(2))
 
     x1 = targets[:, :, 1:2]
     x2 = targets[:, :, 2:]
 
-    std_1 = torch.exp(logstd_1) + epsilon
-    std_2 = torch.exp(logstd_2) + epsilon
+    std_1 = torch.exp(logstd_1)
+    std_2 = torch.exp(logstd_2)
 
     X1 = ((x1 - mu_1) / std_1).pow(2)
     X2 = ((x2 - mu_2) / std_2).pow(2)

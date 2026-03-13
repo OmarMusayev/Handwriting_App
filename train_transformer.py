@@ -19,6 +19,8 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 from utils.model_utils import compute_nll_loss
+from utils.data_utils import data_denormalization
+from utils import plot_stroke
 from models.transformer_synthesis import HandWritingSynthesisTransformer
 
 
@@ -401,6 +403,52 @@ def load_deepwriting(deepwriting_path: str, iam_strokes: np.ndarray) -> tuple:
 
 
 # ---------------------------------------------------------------------------
+# Mid-training sample generation
+# ---------------------------------------------------------------------------
+
+def generate_sample(
+    model,
+    epoch: int,
+    char_to_id: dict,
+    style_stroke: np.ndarray,   # (T, 3) raw (unnormalized) stroke for style
+    train_mean: np.ndarray,
+    train_std: np.ndarray,
+    sample_dir: str,
+    device,
+    text: str = "Hello World",
+    bias: float = 2.0,
+):
+    """Generate a sample image and save it to sample_dir/epoch_NNN.png."""
+    os.makedirs(sample_dir, exist_ok=True)
+
+    # Normalize style stroke
+    style_norm = style_stroke.copy().astype(np.float32)
+    style_norm[:, 1:] = (style_norm[:, 1:] - train_mean) / train_std
+    style_tensor = torch.from_numpy(style_norm).unsqueeze(0).to(device)
+
+    # Encode text
+    char_seq = text + "  "
+    text_ids = np.array([[char_to_id.get(c, 0) for c in char_seq]])
+    text_tensor = torch.from_numpy(text_ids).long().to(device)
+    text_mask = torch.ones(text_tensor.shape, dtype=torch.float32, device=device)
+
+    model.eval()
+    with torch.no_grad():
+        gen = model.generate(
+            text=text_tensor,
+            text_mask=text_mask,
+            style_strokes=style_tensor,
+            bias=bias,
+            max_steps=len(char_seq) * 25,
+        )  # (1, T, 3) normalized
+
+    gen = data_denormalization(train_mean, train_std, gen)
+    save_path = os.path.join(sample_dir, f"epoch_{epoch:03d}.png")
+    plot_stroke(gen[0], save_name=save_path)
+    return save_path
+
+
+# ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
 
@@ -425,6 +473,8 @@ def argparser():
     p.add_argument("--resume", action="store_true", help="Resume from checkpoint_latest.pt")
     p.add_argument("--bias", type=float, default=1.0, help="Sampling bias for mid-epoch generation")
     p.add_argument("--tqdm", action="store_true", help="Show per-batch progress bar with loss and GPU memory")
+    p.add_argument("--sample_every", type=int, default=5, help="Generate a sample image every N epochs (0=off)")
+    p.add_argument("--sample_text", type=str, default="Hello World", help="Text to generate for mid-training samples")
     p.add_argument("--wandb", action="store_true", help="Log metrics to Weights & Biases")
     p.add_argument("--wandb_project", type=str, default="handwriting-transformer")
     p.add_argument("--no_amp", action="store_true", help="Disable BF16 autocast (always off on MPS)")
@@ -548,6 +598,10 @@ def main():
         start_epoch += 1
         print(f"Resumed from epoch {start_epoch - 1}")
 
+    # Pick a fixed style stroke for mid-training samples (first training sample)
+    sample_style_stroke = strokes[train_idx[0]].astype(np.float32)
+    sample_dir = os.path.join(args.checkpoint_dir, "samples")
+
     # WandB
     if args.wandb:
         import wandb
@@ -572,6 +626,19 @@ def main():
             import wandb
             wandb.log({"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss,
                        "beta": beta, "lr": optimizer.param_groups[0]["lr"]})
+
+        # Generate sample image every N epochs
+        if args.sample_every > 0 and (epoch + 1) % args.sample_every == 0:
+            try:
+                path = generate_sample(
+                    model, epoch, char_to_id, sample_style_stroke,
+                    train_mean, train_std, sample_dir, device,
+                    text=args.sample_text, bias=2.0,
+                )
+                _log(f"  → Sample saved: {path}")
+                model.train()
+            except Exception as e:
+                _log(f"  → Sample generation failed: {e}")
 
         # Save latest checkpoint every epoch
         save_checkpoint(

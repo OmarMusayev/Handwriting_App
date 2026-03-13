@@ -207,8 +207,12 @@ class StrokeDecoder(nn.Module):
             seq_len, device=strokes.device
         )
 
-        # Convert text_padding_mask to PyTorch convention: True = ignore (padding)
-        memory_key_padding_mask = (text_padding_mask == 0)  # (batch, text_len)
+        # Additive key padding mask: 0.0 for valid positions, -inf for padding
+        # Using float (same type as memory_mask) avoids PyTorch type mismatch warning
+        memory_key_padding_mask = torch.zeros_like(text_padding_mask)
+        memory_key_padding_mask = memory_key_padding_mask.masked_fill(
+            text_padding_mask == 0, float('-inf')
+        )  # (batch, text_len)
 
         # Gaussian memory mask: forces monotonic left-to-right text-stroke alignment
         memory_mask = self._gaussian_memory_mask(seq_len, text_len, strokes.device)

@@ -132,8 +132,9 @@ def collate_fn(batch: list) -> dict:
         target_strokes[i, :t_len, :] = tgt
         target_mask[i, :t_len] = 1.0
 
-        # Teacher-forced input: [zeros(1,3), target[:-1, :]]
-        # Position 0 stays as the zero start token (already allocated)
+        # Teacher-forced input: [SOS, target[0], target[1], ..., target[T-2]]
+        # SOS = [1, 0, 0] — pen-up flag, zero offsets (matches generate() init)
+        target_strokes_input[i, 0, 0] = 1.0  # pen-up
         if t_len > 1:
             target_strokes_input[i, 1:t_len, :] = tgt[:-1, :]
 
@@ -156,11 +157,11 @@ def collate_fn(batch: list) -> dict:
 # KL annealing schedule
 # ---------------------------------------------------------------------------
 
-def get_beta(epoch: int, stage2_start: int = 20, stage2_end: int = 60) -> float:
+def get_beta(epoch: int, stage2_start: int = 10, stage2_end: int = 35) -> float:
     """Return the KL weight β for the given epoch.
 
     - epoch < stage2_start:                  β = 0.0
-    - stage2_start <= epoch < stage2_end:    β = (epoch - stage2_start) / (stage2_end - stage2_start)
+    - stage2_start <= epoch < stage2_end:    β linear 0→1
     - epoch >= stage2_end:                   β = 1.0
     """
     if epoch < stage2_start:
@@ -182,16 +183,18 @@ def compute_loss(
     logvar: torch.Tensor,         # (batch, latent_dim)
     beta: float,
 ) -> tuple:
-    """Return (loss, nll/n, kl/n) where n = total valid timesteps.
+    """Return (loss, nll/n, kl/sample).
 
-    Both nll and kl are normalised by n (total valid positions across the batch),
-    giving a per-token loss that is stable across variable batch sizes.
+    NLL is normalised by total valid tokens (per-token loss).
+    KL is normalised by batch size (per-sample loss) so it doesn't
+    scale with sequence length and stays interpretable in logs.
     """
     nll = compute_nll_loss(target_strokes, y_hat, target_mask)
-    kl = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    B = mu.size(0)
+    kl = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / B
     n = target_mask.sum().clamp(min=1)
-    loss = (nll + beta * kl) / n
-    return loss, nll / n, kl / n
+    loss = nll / n + beta * kl
+    return loss, nll / n, kl
 
 
 # ---------------------------------------------------------------------------
@@ -213,26 +216,24 @@ def train_epoch(
     model: nn.Module,
     loader: DataLoader,
     optimizer: torch.optim.Optimizer,
+    scheduler,
     device: torch.device,
     beta: float,
-    grad_clip: float = 1.0,
+    grad_clip: float = 5.0,
     use_tqdm: bool = False,
+    use_amp: bool = False,
 ) -> float:
-    """Run one full training epoch.
-
-    Returns:
-        Average total loss across all batches.
-    """
+    """Run one full training epoch. Steps scheduler once per batch."""
     from tqdm import tqdm
 
     model.train()
     total_loss = 0.0
     num_batches = 0
+    amp_enabled = use_amp and device.type == "cuda"
 
     it = tqdm(loader, desc="train", leave=False, mininterval=2.0, dynamic_ncols=True) if use_tqdm else loader
 
     for batch in it:
-        # Move tensors to device
         style_strokes = batch["style_strokes"].to(device)
         target_strokes = batch["target_strokes"].to(device)
         target_mask = batch["target_mask"].to(device)
@@ -242,11 +243,11 @@ def train_epoch(
 
         optimizer.zero_grad()
 
-        y_hat, mu, logvar = model(
-            target_strokes_input, text, text_mask, style_strokes, use_sampling=True
-        )
-
-        loss, _, _ = compute_loss(y_hat, target_strokes, target_mask, mu, logvar, beta)
+        with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=amp_enabled):
+            y_hat, mu, logvar = model(
+                target_strokes_input, text, text_mask, style_strokes, use_sampling=True
+            )
+            loss, _, _ = compute_loss(y_hat, target_strokes, target_mask, mu, logvar, beta)
 
         if not torch.isfinite(loss):
             optimizer.zero_grad()
@@ -255,6 +256,7 @@ def train_epoch(
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()
+        scheduler.step()
 
         total_loss += loss.item()
         num_batches += 1
@@ -410,15 +412,22 @@ def argparser():
     p.add_argument("--epochs", type=int, default=100)
     p.add_argument("--vocab_size_override", type=int, default=None, help="Force vocab_size (use when resuming old checkpoints without saved vocab)")
     p.add_argument("--batch_size", type=int, default=32)
-    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--weight_decay", type=float, default=1e-4)
-    p.add_argument("--grad_clip", type=float, default=1.0)
+    p.add_argument("--grad_clip", type=float, default=5.0)
+    p.add_argument("--warmup_steps", type=int, default=1000, help="Linear LR warmup steps")
+    p.add_argument("--kl_start", type=int, default=10, help="Epoch to start KL annealing")
+    p.add_argument("--kl_end", type=int, default=35, help="Epoch where KL weight reaches 1.0")
     p.add_argument("--max_stroke_len", type=int, default=1000)
     p.add_argument("--deepwriting_path", type=str, default=None, help="Path to deepwriting_dataset/ folder to merge with IAM data")
     p.add_argument("--gdrive_folder_id", type=str, default=None, help="Google Drive folder name (rclone remote path) to auto-backup best checkpoints")
+    p.add_argument("--num_workers", type=int, default=0, help="DataLoader workers (0 for MPS, 4-8 for CUDA)")
     p.add_argument("--resume", action="store_true", help="Resume from checkpoint_latest.pt")
     p.add_argument("--bias", type=float, default=1.0, help="Sampling bias for mid-epoch generation")
     p.add_argument("--tqdm", action="store_true", help="Show per-batch progress bar with loss and GPU memory")
+    p.add_argument("--wandb", action="store_true", help="Log metrics to Weights & Biases")
+    p.add_argument("--wandb_project", type=str, default="handwriting-transformer")
+    p.add_argument("--no_amp", action="store_true", help="Disable BF16 autocast (always off on MPS)")
     return p.parse_args()
 
 
@@ -500,17 +509,35 @@ def main():
         max_stroke_len=args.max_stroke_len,
     )
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,
-                              collate_fn=collate_fn, num_workers=0)
-    valid_loader = DataLoader(valid_ds, batch_size=args.batch_size, shuffle=False,
-                              collate_fn=collate_fn, num_workers=0)
+    train_loader = DataLoader(
+        train_ds, batch_size=args.batch_size, shuffle=True,
+        collate_fn=collate_fn, num_workers=args.num_workers,
+        pin_memory=(device.type == "cuda"),
+        persistent_workers=(args.num_workers > 0),
+    )
+    valid_loader = DataLoader(
+        valid_ds, batch_size=args.batch_size, shuffle=False,
+        collate_fn=collate_fn, num_workers=args.num_workers,
+        pin_memory=(device.type == "cuda"),
+        persistent_workers=(args.num_workers > 0),
+    )
 
     # Model
     model = HandWritingSynthesisTransformer(vocab_size=vocab_size).to(device)
 
-    # Optimizer + scheduler
+    # Optimizer: linear warmup then cosine decay, stepped per batch
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+    total_steps = args.epochs * len(train_loader)
+    warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+        optimizer, start_factor=1e-6, end_factor=1.0, total_iters=args.warmup_steps
+    )
+    cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=max(total_steps - args.warmup_steps, 1)
+    )
+    scheduler = torch.optim.lr_scheduler.SequentialLR(
+        optimizer, schedulers=[warmup_scheduler, cosine_scheduler],
+        milestones=[args.warmup_steps],
+    )
 
     start_epoch = 0
     best_val_loss = float("inf")
@@ -519,21 +546,32 @@ def main():
     if args.resume and os.path.exists(latest_path):
         start_epoch, best_val_loss, _ = load_checkpoint(latest_path, model, optimizer, scheduler, device)
         start_epoch += 1
-        # Reset scheduler so LR anneals over the remaining epochs, not the original run
-        remaining = max(args.epochs - start_epoch, 1)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=remaining)
         print(f"Resumed from epoch {start_epoch - 1}")
+
+    # WandB
+    if args.wandb:
+        import wandb
+        wandb.init(project=args.wandb_project, config=vars(args))
+
+    use_amp = not args.no_amp
 
     # Training loop
     for epoch in range(start_epoch, args.epochs):
-        beta = get_beta(epoch)
+        beta = get_beta(epoch, args.kl_start, args.kl_end)
 
-        train_loss = train_epoch(model, train_loader, optimizer, device, beta, args.grad_clip, use_tqdm=args.tqdm)
-        val_loss   = validation_epoch(model, valid_loader, device, beta)
-        scheduler.step()
+        train_loss = train_epoch(
+            model, train_loader, optimizer, scheduler, device,
+            beta, args.grad_clip, use_tqdm=args.tqdm, use_amp=use_amp,
+        )
+        val_loss = validation_epoch(model, valid_loader, device, beta)
 
         _log = print if not args.tqdm else __import__("tqdm").tqdm.write
         _log(f"Epoch {epoch:3d} | beta={beta:.3f} | train={train_loss:.4f} | val={val_loss:.4f}")
+
+        if args.wandb:
+            import wandb
+            wandb.log({"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss,
+                       "beta": beta, "lr": optimizer.param_groups[0]["lr"]})
 
         # Save latest checkpoint every epoch
         save_checkpoint(
@@ -566,6 +604,8 @@ def main():
                     "beta": beta,
                     "train_mean": train_mean,
                     "train_std": train_std,
+                    "vocab_size": vocab_size,
+                    "char_to_id": char_to_id,
                 },
                 best_path,
             )
@@ -582,6 +622,28 @@ def main():
                 except Exception as e:
                     _log(f"  → Drive upload failed: {e}")
 
+        # Save epoch-numbered checkpoint every 10 epochs (H100 rollback safety)
+        if (epoch + 1) % 10 == 0:
+            epoch_path = os.path.join(args.checkpoint_dir, f"checkpoint_epoch_{epoch+1:03d}.pt")
+            save_checkpoint(
+                {
+                    "epoch": epoch,
+                    "model_state": model.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                    "scheduler_state": scheduler.state_dict(),
+                    "best_val_loss": best_val_loss,
+                    "beta": beta,
+                    "train_mean": train_mean,
+                    "train_std": train_std,
+                    "vocab_size": vocab_size,
+                    "char_to_id": char_to_id,
+                },
+                epoch_path,
+            )
+
+    if args.wandb:
+        import wandb
+        wandb.finish()
     print("Training complete.")
 
 

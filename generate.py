@@ -96,7 +96,7 @@ def generate_conditional_sequence(
             text_mask=text_mask,
             style_strokes=style_strokes,
             bias=bias,
-            max_steps=600,
+            max_steps=len(char_seq) * 25,
         )
         phi = []  # no attention map for transformer
         return gen_seq, phi

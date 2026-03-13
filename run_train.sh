@@ -1,2 +1,13 @@
 #!/bin/bash
-python train_transformer.py --epochs 300 --batch_size 256 --max_stroke_len 1000 --lr 3e-5 --checkpoint_dir checkpoints/transformer/ --deepwriting_path deepwriting_dataset/ --tqdm --gdrive_folder_id handwriting-checkpoints --resume
+# Overnight test run — IAM only, 50 epochs, M4 Mac
+python train_transformer.py \
+  --epochs 50 \
+  --batch_size 8 \
+  --lr 1e-4 \
+  --grad_clip 5.0 \
+  --warmup_steps 500 \
+  --kl_start 10 \
+  --kl_end 35 \
+  --checkpoint_dir checkpoints/transformer_v2/ \
+  --tqdm \
+  --no_amp

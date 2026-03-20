@@ -10,22 +10,10 @@
 
 **Live demo: [hand-magic.com](https://hand-magic.com/)**
 
----
-
-## Samples
-
-**Transformer model** (top-k=20 sampling, each generation is unique):
-
-<p>
-  <img src="docs/samples/transformer_1.png" width="45%" alt="Transformer sample 1">
-  <img src="docs/samples/transformer_2.png" width="45%" alt="Transformer sample 2">
-</p>
-
-**LSTM model** (with style transfer from drawn handwriting):
-
-<p>
-  <img src="docs/samples/lstm_1.png" width="45%" alt="LSTM sample 1">
-  <img src="docs/samples/lstm_2.png" width="45%" alt="LSTM sample 2">
+<p align="center">
+  <a href="https://hand-magic.com/">
+    <img src="docs/samples/screenshot.png" width="90%" alt="Hand Magic — AI Handwriting Generator">
+  </a>
 </p>
 
 ---
@@ -67,6 +55,24 @@ Everything needed to run is in the repo — both model weights are included in `
 
 ---
 
+## Samples
+
+**Transformer model** (top-k=20 sampling, each generation is unique):
+
+<p>
+  <img src="docs/samples/transformer_1.png" width="45%" alt="Transformer sample 1">
+  <img src="docs/samples/transformer_2.png" width="45%" alt="Transformer sample 2">
+</p>
+
+**LSTM model** (with style transfer from drawn handwriting):
+
+<p>
+  <img src="docs/samples/lstm_1.png" width="45%" alt="LSTM sample 1">
+  <img src="docs/samples/lstm_2.png" width="45%" alt="LSTM sample 2">
+</p>
+
+---
+
 ## How It Works
 
 ### LSTM Model
@@ -94,11 +100,12 @@ ai-handwriting-generator/
 │   ├── services/            # Generation workers, job store, cleanup
 │   ├── static/              # CSS + JS frontend
 │   └── templates/           # Jinja2 HTML
-├── handwriting/             # Transformer inference package
+├── handwriting/             # Transformer package (training + inference)
 │   ├── model.py             # CrossAttentionGPT (6-layer, 384-dim)
+│   ├── training.py          # Training loop
 │   ├── generation.py        # Token generation + plotting
 │   ├── tokenizers.py        # Polar offset tokenizer (128 angle × 64 radius)
-│   ├── data.py              # Text vocabulary
+│   ├── data.py              # Text vocabulary + dataset
 │   └── checkpoint.py        # Checkpoint loading
 ├── models/
 │   └── models.py            # LSTM model (3-layer, 400-dim, 20 Gaussians)
@@ -109,14 +116,14 @@ ai-handwriting-generator/
 ├── data/
 │   ├── sentences.txt        # Text vocabulary for LSTM
 │   └── strokes.npy          # Stroke data for LSTM normalization
-├── scripts/transformer/       # Transformer training pipeline
-│   ├── train.py               # Training entry point
+├── scripts/transformer/     # Transformer training pipeline
+│   ├── train.py             # Training entry point
 │   ├── build_iam_ondb_dataset.py
-│   ├── configs/experiments/   # Experiment configs (JSON)
+│   ├── configs/experiments/ # Experiment configs (JSON)
 │   └── ...
 ├── docs/
-│   ├── TRAINING.md            # Full training guide
-│   └── samples/               # Generated sample images
+│   ├── TRAINING.md          # Full training guide
+│   └── samples/             # Sample images
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml

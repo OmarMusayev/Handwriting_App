@@ -17,19 +17,15 @@
 **Transformer model** (top-k=20 sampling, each generation is unique):
 
 <p>
-  <img src="docs/samples/transformer_sample_1.png" width="45%" alt="Hello World - Transformer">
-  <img src="docs/samples/transformer_sample_2.png" width="45%" alt="Handwriting - Transformer">
-</p>
-<p>
-  <img src="docs/samples/transformer_sample_3.png" width="45%" alt="artificial intelligence - Transformer">
-  <img src="docs/samples/transformer_sample_4.png" width="45%" alt="Omar Musayev - Transformer">
+  <img src="docs/samples/transformer_1.png" width="45%" alt="Transformer sample 1">
+  <img src="docs/samples/transformer_2.png" width="45%" alt="Transformer sample 2">
 </p>
 
 **LSTM model** (with style transfer from drawn handwriting):
 
 <p>
-  <img src="docs/samples/lstm_sample_1.png" width="45%" alt="Hello World - LSTM">
-  <img src="docs/samples/lstm_sample_2.png" width="45%" alt="Handwriting - LSTM">
+  <img src="docs/samples/lstm_1.png" width="45%" alt="LSTM sample 1">
+  <img src="docs/samples/lstm_2.png" width="45%" alt="LSTM sample 2">
 </p>
 
 ---

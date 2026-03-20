@@ -1,0 +1,9 @@
+{
+  "name": "finer_2token_128x64_split_radius_median_decode",
+  "scheme": "polar_2token",
+  "n_angle_bins": 128,
+  "n_radius_bins": 64,
+  "max_points_for_bins": 500000,
+  "radius_codebook_mode": "by_draw_flag",
+  "radius_decode_mode": "empirical_median"
+}

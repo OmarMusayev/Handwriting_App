@@ -113,9 +113,14 @@ ai-handwriting-generator/
 ├── data/
 │   ├── sentences.txt        # Text vocabulary for LSTM
 │   └── strokes.npy          # Stroke data for LSTM normalization
+├── scripts/transformer/       # Transformer training pipeline
+│   ├── train.py               # Training entry point
+│   ├── build_iam_ondb_dataset.py
+│   ├── configs/experiments/   # Experiment configs (JSON)
+│   └── ...
 ├── docs/
-│   ├── TRAINING.md          # Full training guide
-│   └── samples/             # Generated sample images
+│   ├── TRAINING.md            # Full training guide
+│   └── samples/               # Generated sample images
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml

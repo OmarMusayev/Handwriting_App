@@ -179,10 +179,44 @@ This means each generation request produces multiple unique handwriting samples 
 
 **How to retrain:**
 
-1. Download IAM On-Line DB from the FKI website (requires registration)
-2. Run the data processing pipeline to build tokenized datasets
-3. Configure an experiment JSON in `configs/experiments/`
-4. Run training (the training code lives in the `handwriting/` package — `training.py` and `optim.py` were stripped from this repo for deployment, but are in the full IAMOnDB research repo)
+The full training pipeline is included in the repo under `handwriting/` (package) and `scripts/transformer/` (entry points + configs).
+
+```bash
+# 1. Install training dependencies
+pip install -r scripts/transformer/requirements.txt
+
+# 2. Download IAM On-Line DB from the FKI website (requires free registration)
+#    https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database
+#    Place the xml.tgz archive in your data directory
+
+# 3. Build the dataset from raw XML
+python scripts/transformer/build_iam_ondb_dataset.py \
+  --xml-dir /path/to/xml/ \
+  --out-dir /path/to/output/
+
+# 4. (Optional) Build filtered local-only dataset
+python scripts/transformer/build_filtered_local_dataset.py \
+  --input-dir /path/to/output/ \
+  --out-dir /path/to/filtered/
+
+# 5. Train (picks up config from experiment JSON)
+python scripts/transformer/train.py \
+  --config scripts/transformer/configs/experiments/iam_local_all_writers_improved_60ep.json
+```
+
+**Key scripts in `scripts/transformer/`:**
+
+| Script | Purpose |
+|---|---|
+| `train.py` | Training entry point (calls `handwriting.training.main()`) |
+| `build_iam_ondb_dataset.py` | Parse IAM XML → stroke offsets + text pairs |
+| `build_filtered_local_dataset.py` | Quality filtering + writer selection |
+| `build_writer_artifacts.py` | Per-writer statistics and artifacts |
+| `cluster_writers_by_style.py` | Group writers by handwriting style |
+| `audit_iam_dot_cross_timing.py` | Detect timing anomalies (dots/crosses) |
+| `tune_hyperparams.py` | Hyperparameter search |
+
+**Experiment configs** are in `scripts/transformer/configs/experiments/`. Each JSON specifies the full training setup: model architecture, optimizer, schedule, dataset paths, etc.
 
 ---
 

@@ -1,0 +1,39 @@
+{
+  "name": "default_panel_clusters",
+  "selection": "top_train_sample_count",
+  "clusters": [
+    {
+      "cluster_id": 3,
+      "label": "cluster_03",
+      "train_sample_count": 5601,
+      "train_writer_count": 34,
+      "representative_writer_ids": [
+        "123505",
+        "123520",
+        "123495"
+      ]
+    },
+    {
+      "cluster_id": 0,
+      "label": "cluster_00",
+      "train_sample_count": 3097,
+      "train_writer_count": 24,
+      "representative_writer_ids": [
+        "123541",
+        "123514",
+        "123467"
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "label": "cluster_02",
+      "train_sample_count": 1383,
+      "train_writer_count": 11,
+      "representative_writer_ids": [
+        "123547",
+        "123525",
+        "123494"
+      ]
+    }
+  ]
+}

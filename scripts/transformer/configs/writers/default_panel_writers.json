@@ -1,0 +1,22 @@
+{
+  "name": "default_panel_writers",
+  "source_split": "train",
+  "selection": "top_train_counts",
+  "writers": [
+    {
+      "writer_id": "123541",
+      "writer_index": 67,
+      "train_count": 302
+    },
+    {
+      "writer_id": "123505",
+      "writer_index": 38,
+      "train_count": 266
+    },
+    {
+      "writer_id": "123520",
+      "writer_index": 48,
+      "train_count": 259
+    }
+  ]
+}

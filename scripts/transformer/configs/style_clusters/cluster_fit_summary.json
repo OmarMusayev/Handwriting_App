@@ -1,0 +1,227 @@
+{
+  "seed": 3407,
+  "feature_source": "filtered_processed_deepwriting_local_only_offsets",
+  "candidate_results": [
+    {
+      "k": 4,
+      "silhouette": 0.195844522308628,
+      "inertia": 1194.867360611582
+    },
+    {
+      "k": 5,
+      "silhouette": 0.17041318652286072,
+      "inertia": 1069.7892638706278
+    },
+    {
+      "k": 6,
+      "silhouette": 0.1613414198051243,
+      "inertia": 995.3954119875298
+    },
+    {
+      "k": 7,
+      "silhouette": 0.18563421460251864,
+      "inertia": 912.9436046245294
+    },
+    {
+      "k": 8,
+      "silhouette": 0.17007778308942947,
+      "inertia": 865.2611470291903
+    },
+    {
+      "k": 9,
+      "silhouette": 0.15375048410330874,
+      "inertia": 798.3318853394087
+    },
+    {
+      "k": 10,
+      "silhouette": 0.15501623362964867,
+      "inertia": 780.3174778543996
+    },
+    {
+      "k": 11,
+      "silhouette": 0.17824912459198014,
+      "inertia": 695.7596024828841
+    },
+    {
+      "k": 12,
+      "silhouette": 0.17452267917010997,
+      "inertia": 659.7354691429094
+    }
+  ],
+  "chosen_k": 4,
+  "selection_reason": "highest silhouette score on train-writer PCA embeddings",
+  "feature_columns": [
+    "feat__offset_count__median",
+    "feat__offset_count__iqr",
+    "feat__draw_segment_count__median",
+    "feat__draw_segment_count__iqr",
+    "feat__relocation_count__median",
+    "feat__relocation_count__iqr",
+    "feat__draw_run_count__median",
+    "feat__draw_run_count__iqr",
+    "feat__draw_fraction__median",
+    "feat__draw_fraction__iqr",
+    "feat__pen_lift_ratio__median",
+    "feat__pen_lift_ratio__iqr",
+    "feat__mean_draw_run_length__median",
+    "feat__mean_draw_run_length__iqr",
+    "feat__mean_draw_length_norm__median",
+    "feat__mean_draw_length_norm__iqr",
+    "feat__median_draw_length_norm__median",
+    "feat__median_draw_length_norm__iqr",
+    "feat__mean_relocation_length_norm__median",
+    "feat__mean_relocation_length_norm__iqr",
+    "feat__relocation_to_draw_ratio__median",
+    "feat__relocation_to_draw_ratio__iqr",
+    "feat__bbox_width__median",
+    "feat__bbox_width__iqr",
+    "feat__bbox_height__median",
+    "feat__bbox_height__iqr",
+    "feat__aspect_ratio__median",
+    "feat__aspect_ratio__iqr",
+    "feat__ink_density__median",
+    "feat__ink_density__iqr",
+    "feat__normalized_draw_path_length__median",
+    "feat__normalized_draw_path_length__iqr",
+    "feat__horizontal_motion_ratio__median",
+    "feat__horizontal_motion_ratio__iqr",
+    "feat__vertical_motion_ratio__median",
+    "feat__vertical_motion_ratio__iqr",
+    "feat__path_efficiency__median",
+    "feat__path_efficiency__iqr",
+    "feat__baseline_slope__median",
+    "feat__baseline_slope__iqr",
+    "feat__slant_proxy__median",
+    "feat__slant_proxy__iqr",
+    "feat__mean_abs_turn__median",
+    "feat__mean_abs_turn__iqr",
+    "feat__sharp_turn_ratio__median",
+    "feat__sharp_turn_ratio__iqr"
+  ],
+  "train_writer_count": 75,
+  "split_stats": {
+    "train": {
+      "sample_count": 10525,
+      "writer_count": 75,
+      "sample_count_by_cluster": {
+        "0": 3097,
+        "1": 444,
+        "2": 1383,
+        "3": 5601
+      },
+      "writer_count_by_cluster": {
+        "0": 24,
+        "1": 6,
+        "2": 11,
+        "3": 34
+      }
+    },
+    "val": {
+      "sample_count": 1234,
+      "writer_count": 9,
+      "sample_count_by_cluster": {
+        "0": 713,
+        "3": 521
+      },
+      "writer_count_by_cluster": {
+        "0": 5,
+        "3": 4
+      }
+    },
+    "test": {
+      "sample_count": 1271,
+      "writer_count": 10,
+      "sample_count_by_cluster": {
+        "0": 641,
+        "1": 58,
+        "2": 105,
+        "3": 467
+      },
+      "writer_count_by_cluster": {
+        "0": 5,
+        "1": 1,
+        "2": 2,
+        "3": 2
+      }
+    }
+  },
+  "cluster_stats": {
+    "0": {
+      "cluster_id": 0,
+      "train_writer_count": 24,
+      "train_sample_count": 3097,
+      "split_writer_count": {
+        "train": 24,
+        "val": 5,
+        "test": 5
+      },
+      "split_sample_count": {
+        "train": 3097,
+        "val": 713,
+        "test": 641
+      }
+    },
+    "1": {
+      "cluster_id": 1,
+      "train_writer_count": 6,
+      "train_sample_count": 444,
+      "split_writer_count": {
+        "train": 6,
+        "val": 0,
+        "test": 1
+      },
+      "split_sample_count": {
+        "train": 444,
+        "val": 0,
+        "test": 58
+      }
+    },
+    "2": {
+      "cluster_id": 2,
+      "train_writer_count": 11,
+      "train_sample_count": 1383,
+      "split_writer_count": {
+        "train": 11,
+        "val": 0,
+        "test": 2
+      },
+      "split_sample_count": {
+        "train": 1383,
+        "val": 0,
+        "test": 105
+      }
+    },
+    "3": {
+      "cluster_id": 3,
+      "train_writer_count": 34,
+      "train_sample_count": 5601,
+      "split_writer_count": {
+        "train": 34,
+        "val": 4,
+        "test": 2
+      },
+      "split_sample_count": {
+        "train": 5601,
+        "val": 521,
+        "test": 467
+      }
+    }
+  },
+  "pca_components": 8,
+  "pca_explained_variance_ratio": [
+    0.34558165359162335,
+    0.16010896803055696,
+    0.1255971538717862,
+    0.0766737021210027,
+    0.05590688315572819,
+    0.03478492323828141,
+    0.03217659735170995,
+    0.026204953238361552
+  ],
+  "writer_style_features_path": "configs/style_clusters/writer_style_features.csv",
+  "writer_style_features_train_path": "configs/style_clusters/writer_style_features_train.csv",
+  "writer_to_cluster_map_path": "configs/style_clusters/writer_to_cluster_map.json",
+  "cluster_centroids_path": "configs/style_clusters/cluster_centroids.json",
+  "default_panel_clusters_path": "configs/style_clusters/default_panel_clusters.json",
+  "cluster_top_writers_path": "configs/style_clusters/cluster_top_writers.csv"
+}

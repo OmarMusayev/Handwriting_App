@@ -1,1 +1,1 @@
-# handwriting — IAMOnDB transformer inference package
+# handwriting — IAMOnDB transformer training & inference package

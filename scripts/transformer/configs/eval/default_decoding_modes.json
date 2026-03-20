@@ -1,0 +1,23 @@
+{
+  "name": "default_decoding_modes",
+  "modes": [
+    {
+      "name": "temp0p5_topk0",
+      "greedy": false,
+      "temperature": 0.5,
+      "top_k": 0
+    },
+    {
+      "name": "temp0p7_topk5",
+      "greedy": false,
+      "temperature": 0.7,
+      "top_k": 5
+    },
+    {
+      "name": "temp0p9_topk20",
+      "greedy": false,
+      "temperature": 0.9,
+      "top_k": 20
+    }
+  ]
+}

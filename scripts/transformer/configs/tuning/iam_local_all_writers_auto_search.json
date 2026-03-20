@@ -1,0 +1,90 @@
+{
+  "search_name": "iam_local_all_writers_auto_search",
+  "base_experiment_config": "configs/experiments/iam_local_all_writers_improved_60ep.json",
+  "seed": 3407,
+  "num_trials": 8,
+  "initial_random_trials": 3,
+  "search_epochs": 8,
+  "search_max_train_samples": 12000,
+  "search_max_val_samples": 2000,
+  "search_max_test_samples": 0,
+  "final_retrain_best": true,
+  "search_overrides": {
+    "panel_every_epochs": 0,
+    "eval_every_epochs": 1,
+    "save_every": 0,
+    "log_every": 50,
+    "skip_tokenizer_diagnostics": true,
+    "multi_gpu_mode": "dataparallel"
+  },
+  "final_overrides": {
+    "panel_every_epochs": 5,
+    "eval_every_epochs": 1,
+    "max_train_samples": 0,
+    "max_val_samples": 0,
+    "max_test_samples": 0
+  },
+  "search_space": {
+    "model_preset": {
+      "type": "categorical",
+      "values": [
+        "m256_l8_h8",
+        "m320_l8_h8",
+        "m384_l8_h8"
+      ]
+    },
+    "lr": {
+      "type": "float",
+      "low": 0.0001,
+      "high": 0.0006,
+      "log": true
+    },
+    "warmup_steps": {
+      "type": "int",
+      "low": 500,
+      "high": 3000,
+      "step": 250
+    },
+    "min_lr_ratio": {
+      "type": "float",
+      "low": 0.02,
+      "high": 0.2,
+      "log": true
+    },
+    "weight_decay": {
+      "type": "float",
+      "low": 0.005,
+      "high": 0.05,
+      "log": true
+    },
+    "adam_beta2": {
+      "type": "categorical",
+      "values": [
+        0.95,
+        0.97,
+        0.98,
+        0.99
+      ]
+    },
+    "dropout": {
+      "type": "float",
+      "low": 0.05,
+      "high": 0.16
+    },
+    "train_label_smoothing": {
+      "type": "float",
+      "low": 0.0,
+      "high": 0.05
+    },
+    "train_downsample_keep_min": {
+      "type": "float",
+      "low": 0.75,
+      "high": 0.9
+    },
+    "train_downsample_keep_max": {
+      "type": "float",
+      "low": 0.9,
+      "high": 0.98
+    }
+  }
+}

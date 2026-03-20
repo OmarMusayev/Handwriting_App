@@ -113,6 +113,61 @@ header {
   margin-bottom: 0.8rem;
 }
 
+/* Mode toggle */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin: 1.4rem 0 0;
+  justify-content: center;
+}
+
+.mode-btn {
+  font-family: 'VT323', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1.8rem;
+  cursor: pointer;
+  border: 1px solid var(--grid);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.15s;
+}
+
+.mode-btn:first-child {
+  border-radius: 4px 0 0 4px;
+  border-right: none;
+}
+
+.mode-btn:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.mode-btn.active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(0,245,255,0.1);
+  box-shadow: var(--glow-c);
+}
+
+.mode-btn:hover:not(.active) {
+  border-color: var(--cyan);
+  color: var(--text);
+}
+
+[data-theme="minimal"] .mode-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+[data-theme="minimal"] .mode-btn.active {
+  background: #0a0a0a;
+  color: #ffffff;
+  border-color: #0a0a0a;
+  box-shadow: none;
+}
+
 /* Studio layout */
 .studio {
   display: grid;

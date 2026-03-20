@@ -27,8 +27,14 @@
     <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" aria-label="Toggle theme">[ MINIMAL ]</button>
   </header>
 
-  <!-- Studio -->
-  <div class="studio">
+  <!-- Mode toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="lstm" id="mode-lstm">LSTM</button>
+    <button class="mode-btn" data-mode="transformer" id="mode-transformer">TRANSFORMER</button>
+  </div>
+
+  <!-- Studio (LSTM only) -->
+  <div class="studio" id="studio-section">
 
     <!-- Style list panel -->
     <div class="card">
@@ -60,13 +66,21 @@
       <form id="generate-form">
         <input type="text" id="gen-text" class="text-input" placeholder="Enter text to synthesize..." style="margin-bottom:0.8rem;">
 
-        <div class="hint" style="margin-bottom:0.4rem;">STYLE</div>
-        <div class="style-pills" id="style-pills"></div>
+        <!-- LSTM-only controls -->
+        <div id="lstm-controls">
+          <div class="hint" style="margin-bottom:0.4rem;">STYLE</div>
+          <div class="style-pills" id="style-pills"></div>
 
-        <div class="bias-row">
-          <label>BIAS</label>
-          <input type="range" id="bias-slider" min="0" max="10" step="0.5" value="5">
-          <span id="bias-display">5.0</span>
+          <div class="bias-row">
+            <label>BIAS</label>
+            <input type="range" id="bias-slider" min="0" max="10" step="0.5" value="5">
+            <span id="bias-display">5.0</span>
+          </div>
+        </div>
+
+        <!-- Transformer info -->
+        <div id="transformer-info" style="display:none;">
+          <p class="hint">Generates multiple samples using top-k sampling. Each sample is unique.</p>
         </div>
 
         <button type="submit" class="btn btn-cyan" id="btn-synthesize" style="min-width:180px;">[ ▶ SYNTHESIZE ]</button>
@@ -100,7 +114,7 @@
   var busy = false;
 
   function updateBtn(theme) {
-    btn.textContent = theme === 'synth' ? '[ MINIMAL ]' : '[ \u2726 SYNTH ]';
+    btn.textContent = theme === 'synth' ? '[ MINIMAL ]' : '[ ✦ SYNTH ]';
   }
 
   updateBtn(document.documentElement.getAttribute('data-theme') || 'synth');

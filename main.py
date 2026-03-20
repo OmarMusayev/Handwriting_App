@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.core.config import settings
 from app.core.singletons import startup_singletons
+from app.core.transformer_singleton import TransformerSingleton
 from app.services.cleanup import cleanup_old_sessions
 from app.api import styles, generate, jobs
 
@@ -15,7 +16,8 @@ from app.api import styles, generate, jobs
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    startup_singletons(settings.data_path, settings.model_path, device, settings.model_type)
+    startup_singletons(settings.data_path, settings.model_path, device)
+    TransformerSingleton.initialize(settings.transformer_checkpoint, device)
     cleanup_old_sessions()
     yield
 

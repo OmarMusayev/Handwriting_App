@@ -12,119 +12,92 @@
 
 ## What is this?
 
-A deep learning system that generates realistic handwritten text from any input string. Draw your own handwriting style on the canvas and the model will mimic it — or use the default style.
+A web app that generates realistic handwritten text from any input string. Two model architectures:
 
-**Two model architectures included:**
-- A classic **LSTM + Gaussian Mixture Model** (based on [Alex Graves 2013](https://arxiv.org/abs/1308.0850)) — production-ready
-- A modern **Transformer + Style VAE** — trained on 41,000+ handwriting samples, currently in training on an NVIDIA H100 SXM
+- **LSTM + Gaussian Mixture Model** — classic approach (Graves 2013), supports style transfer from your own handwriting drawn on-canvas
+- **Transformer + Polar Tokenizer** — trained on IAM On-Line Handwriting DB, generates multiple samples via top-k sampling
 
----
-
-## Demo
-
-- Draw your handwriting style on the canvas
-- Type any text
-- Get multiple generated handwriting samples, streamed progressively as each one finishes
-- Save and manage up to 10 styles per session — no login required
+Toggle between models in the UI.
 
 ---
 
-## Features
-
-- **Style transfer** — draw on canvas, model mimics your handwriting
-- **No login required** — session persists via cookie
-- **Multi-style management** — save, rename, delete up to 10 styles
-- **Async generation** — samples stream as they're ready
-- **Two model backends** — LSTM (fast, stable) or Transformer + Style VAE (richer style control)
-- **FastAPI + Uvicorn** backend
-- **Retro synthwave UI** — neon glows, CRT scanlines, perspective grid
-
----
-
-## Quick Start
+## Quick Start (Server)
 
 ```bash
 git clone https://github.com/OmarMusayev/ai-handwriting-generator.git
 cd ai-handwriting-generator
 python -m venv env && source env/bin/activate
 pip install -r requirements.txt
-python -m uvicorn main:app --reload --port 8000
+cp .env.example .env
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-Open http://localhost:8000
+Open `http://your-server:8000`
 
-**Use the Transformer model:**
+Everything needed to run is in the repo — both model weights are included in `weights/`.
 
-```bash
-MODEL_TYPE=transformer MODEL_PATH=checkpoints/transformer/checkpoint_best.pt \
-  python -m uvicorn main:app --reload --port 8000
-```
+---
+
+## Features
+
+- **Two model modes** — switch between LSTM and Transformer in the UI
+- **Style transfer** (LSTM) — draw on canvas, model mimics your handwriting
+- **Multi-sample generation** (Transformer) — each sample is unique via top-k=20 sampling
+- **No login required** — session persists via cookie
+- **Multi-style management** — save, rename, delete up to 10 styles
+- **Async generation** — samples stream progressively as each finishes
 
 ---
 
 ## How It Works
 
-### LSTM Model (Graves 2013)
+### LSTM Model
 
-A 3-layer LSTM with a soft attention window over the input text. At each step it predicts a bivariate Gaussian mixture distribution over the next pen offset `(dx, dy)` and an end-of-stroke flag. The attention window tracks which character is being written.
+A 3-layer LSTM with a soft attention window over the input text. At each step it predicts a bivariate Gaussian mixture distribution over the next pen offset `(dx, dy)` and an end-of-stroke flag. Style transfer works by priming the model with your drawn strokes.
 
-### Transformer + Style VAE
+Based on [Alex Graves — Generating Sequences With Recurrent Neural Networks (2013)](https://arxiv.org/abs/1308.0850).
 
-A modern architecture with four components:
+### Transformer Model
 
-| Component | Architecture | Purpose |
-|---|---|---|
-| **TextEncoder** | 4-layer Transformer encoder, d_model=256, 8 heads | Encodes input text into context vectors |
-| **StyleVAE** | BiLSTM (2 layers, hidden=256) → 64-dim latent | Encodes handwriting style into a latent vector z |
-| **StrokeDecoder** | 6-layer causal Transformer decoder | Autoregressively generates strokes conditioned on text + style |
-| **MDNHead** | Linear(256 → 121) | Outputs Gaussian mixture parameters for next stroke |
+A cross-attention GPT-style decoder (6 layers, 384-dim, 6 heads). Text is encoded character-by-character, and strokes are tokenized into polar coordinates (angle + radius tokens). Generation is autoregressive with top-k=20 sampling at temperature 0.9.
 
-Training uses **KL annealing** (β-VAE): β=0 for epochs 0–19, linear ramp 0→1 for epochs 20–60, β=1 after epoch 60. This prevents posterior collapse in the style encoder.
-
-Loss: `(NLL + β·KL) / n`
+Trained on [IAM On-Line Handwriting DB](https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database) (epoch 55, best validation loss).
 
 ---
 
-## Training
+## Project Structure
 
-### Data
-
-| Dataset | Samples | Format |
-|---|---|---|
-| [IAM On-Line Handwriting DB](https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database) | 6,000 sentences | `[eos, dx, dy]` stroke arrays |
-| [DeepWriting](https://ait.ethz.ch/deepwriting) | 35,000+ samples | Converted + rescaled to IAM format |
-| **Combined** | **41,000+** | Used for Transformer training |
-
-### Hardware
-
-**Cloud (Transformer):**
-- NVIDIA H100 SXM 80GB — RunPod
-- batch_size=256, ~20 min/epoch, 300 epochs in ~4 hours
-
-**Local (LSTM / prototyping):**
-- Apple MacBook Pro M4 Max, 48GB unified RAM
-- Apple MPS, batch_size=8, ~31 min/epoch
-
-### Train the Transformer
-
-```bash
-# Fresh run
-python train_transformer.py \
-  --epochs 300 --batch_size 256 --max_stroke_len 1000 \
-  --checkpoint_dir checkpoints/transformer/ \
-  --deepwriting_path deepwriting_dataset/ --tqdm
-
-# Resume
-python train_transformer.py \
-  --epochs 300 --batch_size 256 --max_stroke_len 1000 \
-  --checkpoint_dir checkpoints/transformer/ \
-  --deepwriting_path deepwriting_dataset/ --tqdm --resume
 ```
-
-### Train the LSTM
-
-```bash
-python train.py
+ai-handwriting-generator/
+├── main.py                  # FastAPI app entry point
+├── generate.py              # CLI generation
+├── train.py                 # LSTM training script
+├── app/
+│   ├── api/                 # REST endpoints (styles, generate, jobs)
+│   ├── core/                # Config, singletons, session management
+│   ├── services/            # Generation workers, job store, cleanup
+│   ├── static/              # CSS + JS frontend
+│   └── templates/           # Jinja2 HTML
+├── handwriting/             # Transformer inference package (IAMOnDB)
+│   ├── model.py             # CrossAttentionGPT architecture
+│   ├── generation.py        # Token generation + plotting
+│   ├── tokenizers.py        # Polar offset tokenizer
+│   ├── data.py              # Text vocabulary
+│   └── checkpoint.py        # Checkpoint loading
+├── models/
+│   └── models.py            # LSTM model (HandWritingSynthesisNet)
+├── utils/                   # Dataset, normalization, plotting
+├── weights/
+│   ├── lstm.pt              # LSTM best model (14MB)
+│   └── transformer.pt       # Transformer best model (102MB, Git LFS)
+├── data/
+│   ├── sentences.txt        # Text vocabulary for LSTM
+│   └── strokes.npy          # Stroke data for LSTM normalization
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+└── tests/
 ```
 
 ---
@@ -133,38 +106,37 @@ python train.py
 
 | Variable | Default | Description |
 |---|---|---|
-| `MODEL_TYPE` | `lstm` | `lstm` or `transformer` |
-| `MODEL_PATH` | `results/synthesis/best_model_synthesis_4.pt` | Checkpoint path |
-| `DATA_PATH` | `data/` | Path to stroke data |
-| `DISK_STORAGE_PATH` | `./disk` | Session/style storage |
-| `MAX_GEN_STEPS` | `600` | Max generation steps |
+| `MODEL_PATH` | `weights/lstm.pt` | LSTM checkpoint |
+| `TRANSFORMER_CHECKPOINT` | `weights/transformer.pt` | Transformer checkpoint |
+| `DATA_PATH` | `./data/` | Path to LSTM stroke data |
+| `DISK_STORAGE_PATH` | `./disk` | Session/style/job storage |
+| `MAX_GEN_STEPS` | `600` | Max LSTM generation steps |
 | `N_SAMPLES` | `5` | Samples per request |
 | `SESSION_TTL_DAYS` | `7` | Session cookie lifetime |
 
 ---
 
-## Project Structure
+## Training Data Sources
 
-```
-ai-handwriting-generator/
-├── main.py                        # FastAPI app entry point
-├── train.py                       # LSTM training
-├── train_transformer.py           # Transformer + Style VAE training
-├── generate.py                    # CLI generation (both models)
-├── app/
-│   ├── api/                       # REST endpoints (styles, generate, jobs)
-│   ├── core/                      # Config, singletons, session
-│   ├── services/                  # Generation worker, job store, cleanup
-│   ├── static/                    # CSS + JS
-│   └── templates/                 # Jinja2 HTML
-├── models/
-│   ├── models.py                  # HandWritingSynthesisNet (LSTM)
-│   └── transformer_synthesis.py   # HandWritingSynthesisTransformer
-├── utils/                         # Dataset, normalization, plotting
-├── checkpoints/transformer/       # Transformer checkpoints
-├── results/synthesis/             # LSTM checkpoints
-└── data/                          # Stroke data (not in repo — see Training)
-```
+The model weights are included in the repo so you don't need the training data to run the app. If you want to retrain:
+
+### IAM On-Line Handwriting Database
+- **Source**: [FKI Group, University of Bern](https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database)
+- **What**: ~13,000 handwriting samples from 500+ writers, captured as pen coordinates
+- **Format**: XML files with stroke coordinates, converted to `[dx, dy, pen_flag]` offset arrays
+- **Used for**: Transformer model training (75 writers, filtered for quality)
+- **Access**: Free registration required on the FKI website
+
+### DeepWriting Dataset
+- **Source**: [ETH Zurich — DeepWriting (Aksan et al. 2018)](https://ait.ethz.ch/deepwriting)
+- **What**: 35,000+ handwriting samples
+- **Format**: Converted and rescaled to match IAM offset format `[eos, dx, dy]`
+- **Used for**: Additional LSTM training data
+
+### LSTM Training Data (`data/`)
+- `strokes.npy` — NumPy object array of variable-length stroke sequences, each `(T, 3)` with `[eos, dx, dy]`
+- `sentences.txt` — Corresponding text for each stroke sequence (one per line)
+- These come from the original Graves 2013 handwriting dataset
 
 ---
 

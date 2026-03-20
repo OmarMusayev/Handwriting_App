@@ -69,29 +69,19 @@ class ModelSingleton:
     _model = None
 
     @classmethod
-    def get(cls, model_path: str, device: str, vocab_size: int, model_type: str = "lstm"):
+    def get(cls, model_path: str, device: str, vocab_size: int):
         if cls._model is None:
-            if model_type == "transformer":
-                from models.transformer_synthesis import HandWritingSynthesisTransformer
-                model = HandWritingSynthesisTransformer(vocab_size=vocab_size)
-                checkpoint = torch.load(model_path, map_location=device)
-                model.load_state_dict(checkpoint["model_state"])
-                # Override global stats with the exact stats used during training
-                if "train_mean" in checkpoint and "train_std" in checkpoint:
-                    StatsSingleton.train_mean = checkpoint["train_mean"]
-                    StatsSingleton.train_std = checkpoint["train_std"]
-            else:
-                model = HandWritingSynthesisNet(window_size=vocab_size)
-                state_dict = torch.load(model_path, map_location=device)
-                model.load_state_dict(state_dict)
+            model = HandWritingSynthesisNet(window_size=vocab_size)
+            state_dict = torch.load(model_path, map_location=device)
+            model.load_state_dict(state_dict)
             model.to(device)
             model.eval()
             cls._model = model
         return cls._model
 
 
-def startup_singletons(data_path: str, model_path: str, device: str, model_type: str = "lstm"):
+def startup_singletons(data_path: str, model_path: str, device: str):
     """Call once at app startup."""
     VocabSingleton.initialize(data_path)
     StatsSingleton.initialize(data_path)
-    ModelSingleton.get(model_path, device, VocabSingleton.vocab_size(), model_type)
+    ModelSingleton.get(model_path, device, VocabSingleton.vocab_size())

@@ -19,6 +19,32 @@
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
 
+  // Mode elements
+  const studioSection = document.getElementById("studio-section");
+  const lstmControls = document.getElementById("lstm-controls");
+  const transformerInfo = document.getElementById("transformer-info");
+  const modeLstmBtn = document.getElementById("mode-lstm");
+  const modeTransformerBtn = document.getElementById("mode-transformer");
+
+  // ── Mode toggle ──────────────────────────────────────────────────────────
+  let currentMode = "lstm";
+
+  function setMode(mode) {
+    currentMode = mode;
+
+    // Toggle button active state
+    modeLstmBtn.classList.toggle("active", mode === "lstm");
+    modeTransformerBtn.classList.toggle("active", mode === "transformer");
+
+    // Show/hide sections
+    studioSection.style.display = mode === "lstm" ? "" : "none";
+    lstmControls.style.display = mode === "lstm" ? "" : "none";
+    transformerInfo.style.display = mode === "transformer" ? "" : "none";
+  }
+
+  modeLstmBtn.addEventListener("click", () => setMode("lstm"));
+  modeTransformerBtn.addEventListener("click", () => setMode("transformer"));
+
   // ── Bias slider ───────────────────────────────────────────────────────────
   biasSlider.addEventListener("input", () => {
     biasDisplay.textContent = parseFloat(biasSlider.value).toFixed(1);
@@ -73,9 +99,12 @@
       return;
     }
 
-    const bias = parseFloat(biasSlider.value);
-    const payload = { text, bias };
-    if (selectedStyleId) payload.style_id = selectedStyleId;
+    const payload = { text, mode: currentMode };
+
+    if (currentMode === "lstm") {
+      payload.bias = parseFloat(biasSlider.value);
+      if (selectedStyleId) payload.style_id = selectedStyleId;
+    }
 
     // UI: disable form, clear results, show progress
     synthBtn.disabled = true;
@@ -132,7 +161,7 @@
         return;
       }
       if (job.status === "error") {
-        flashError("Generation error: " + (job.error || "unknown"));
+        flashError("Generation error: " + (job.error || job.message || "unknown"));
         progressBar.style.display = "none";
         resetUI();
         return;

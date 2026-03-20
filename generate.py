@@ -72,35 +72,6 @@ def generate_conditional_sequence(
     is_map,
     batch_size=1,
 ):
-    # Transformer model branch
-    from models.transformer_synthesis import HandWritingSynthesisTransformer
-    if isinstance(model_or_path, HandWritingSynthesisTransformer):
-        # prime_seq is style strokes: (batch, style_len, 3) tensor or None
-        # If no style provided, create a 1-step zero style input
-        if prime_seq is None or (isinstance(prime_seq, torch.Tensor) and prime_seq.numel() == 0):
-            style_strokes = torch.zeros(1, 1, 3, device=device)
-        else:
-            style_strokes = prime_seq if isinstance(prime_seq, torch.Tensor) else torch.from_numpy(prime_seq).to(device)
-            if style_strokes.dim() == 2:
-                style_strokes = style_strokes.unsqueeze(0)  # add batch dim if missing
-
-        # Encode text to int indices
-        char_seq_arr = np.array(list(char_seq + "  "))
-        text_ids = np.array([[char_to_id.get(c, 0) for c in char_seq_arr]])
-        text_tensor = torch.from_numpy(text_ids).long().to(device)
-        text_mask = torch.ones(text_tensor.shape, dtype=torch.float32, device=device)
-
-        model_or_path.eval()
-        gen_seq = model_or_path.generate(
-            text=text_tensor,
-            text_mask=text_mask,
-            style_strokes=style_strokes,
-            bias=bias,
-            max_steps=len(char_seq) * 25,
-        )
-        phi = []  # no attention map for transformer
-        return gen_seq, phi
-
     # Check if we received a file path (string) or a model instance
     if isinstance(model_or_path, str):
         print("Loading model from file:", model_or_path)

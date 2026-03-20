@@ -8,20 +8,42 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135-green)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
+**Live demo: [hand-magic.com](https://hand-magic.com/)**
+
+---
+
+## Samples
+
+**Transformer model** (top-k=20 sampling, each generation is unique):
+
+<p>
+  <img src="docs/samples/transformer_sample_1.png" width="45%" alt="Hello World - Transformer">
+  <img src="docs/samples/transformer_sample_2.png" width="45%" alt="Handwriting - Transformer">
+</p>
+<p>
+  <img src="docs/samples/transformer_sample_3.png" width="45%" alt="artificial intelligence - Transformer">
+  <img src="docs/samples/transformer_sample_4.png" width="45%" alt="Omar Musayev - Transformer">
+</p>
+
+**LSTM model** (with style transfer from drawn handwriting):
+
+<p>
+  <img src="docs/samples/lstm_sample_1.png" width="45%" alt="Hello World - LSTM">
+  <img src="docs/samples/lstm_sample_2.png" width="45%" alt="Handwriting - LSTM">
+</p>
+
 ---
 
 ## What is this?
 
-A web app that generates realistic handwritten text from any input string. Two model architectures:
+A web app that generates realistic handwritten text from any input string. Two model architectures you can toggle between in the UI:
 
-- **LSTM + Gaussian Mixture Model** — classic approach (Graves 2013), supports style transfer from your own handwriting drawn on-canvas
-- **Transformer + Polar Tokenizer** — trained on IAM On-Line Handwriting DB, generates multiple samples via top-k sampling
-
-Toggle between models in the UI.
+- **LSTM + Gaussian Mixture Model** — classic approach ([Graves 2013](https://arxiv.org/abs/1308.0850)), supports style transfer from your own handwriting drawn on-canvas
+- **Transformer + Polar Tokenizer** — cross-attention GPT decoder trained on IAM On-Line Handwriting DB, generates multiple unique samples via top-k sampling
 
 ---
 
-## Quick Start (Server)
+## Quick Start
 
 ```bash
 git clone https://github.com/OmarMusayev/ai-handwriting-generator.git
@@ -32,7 +54,7 @@ cp .env.example .env
 python -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-Open `http://your-server:8000`
+Open `http://localhost:8000`
 
 Everything needed to run is in the repo — both model weights are included in `weights/`.
 
@@ -53,15 +75,13 @@ Everything needed to run is in the repo — both model weights are included in `
 
 ### LSTM Model
 
-A 3-layer LSTM with a soft attention window over the input text. At each step it predicts a bivariate Gaussian mixture distribution over the next pen offset `(dx, dy)` and an end-of-stroke flag. Style transfer works by priming the model with your drawn strokes.
-
-Based on [Alex Graves — Generating Sequences With Recurrent Neural Networks (2013)](https://arxiv.org/abs/1308.0850).
+A 3-layer LSTM (hidden_size=400) with a soft Gaussian attention window (K=10 components) over the input text. At each step it predicts a mixture of 20 bivariate Gaussians for the next pen offset `(dx, dy)` plus an end-of-stroke probability. Style transfer works by priming the model with your drawn strokes.
 
 ### Transformer Model
 
-A cross-attention GPT-style decoder (6 layers, 384-dim, 6 heads). Text is encoded character-by-character, and strokes are tokenized into polar coordinates (angle + radius tokens). Generation is autoregressive with top-k=20 sampling at temperature 0.9.
+A 6-layer cross-attention GPT decoder (d_model=384, 6 heads). Text is encoded character-by-character. Strokes are tokenized into discrete polar coordinate tokens — each offset becomes 2 tokens: an angle token (128 bins) and a radius+pen token (64 bins). Generation is autoregressive with top-k=20 sampling at temperature 0.9.
 
-Trained on [IAM On-Line Handwriting DB](https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database) (epoch 55, best validation loss).
+For full architecture details, hyperparameters, data pipeline, and retraining instructions, see **[docs/TRAINING.md](docs/TRAINING.md)**.
 
 ---
 
@@ -78,14 +98,14 @@ ai-handwriting-generator/
 │   ├── services/            # Generation workers, job store, cleanup
 │   ├── static/              # CSS + JS frontend
 │   └── templates/           # Jinja2 HTML
-├── handwriting/             # Transformer inference package (IAMOnDB)
-│   ├── model.py             # CrossAttentionGPT architecture
+├── handwriting/             # Transformer inference package
+│   ├── model.py             # CrossAttentionGPT (6-layer, 384-dim)
 │   ├── generation.py        # Token generation + plotting
-│   ├── tokenizers.py        # Polar offset tokenizer
+│   ├── tokenizers.py        # Polar offset tokenizer (128 angle × 64 radius)
 │   ├── data.py              # Text vocabulary
 │   └── checkpoint.py        # Checkpoint loading
 ├── models/
-│   └── models.py            # LSTM model (HandWritingSynthesisNet)
+│   └── models.py            # LSTM model (3-layer, 400-dim, 20 Gaussians)
 ├── utils/                   # Dataset, normalization, plotting
 ├── weights/
 │   ├── lstm.pt              # LSTM best model (14MB)
@@ -93,11 +113,13 @@ ai-handwriting-generator/
 ├── data/
 │   ├── sentences.txt        # Text vocabulary for LSTM
 │   └── strokes.npy          # Stroke data for LSTM normalization
+├── docs/
+│   ├── TRAINING.md          # Full training guide
+│   └── samples/             # Generated sample images
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
-├── .env.example
-└── tests/
+└── .env.example
 ```
 
 ---
@@ -116,27 +138,15 @@ ai-handwriting-generator/
 
 ---
 
-## Training Data Sources
+## Training Data
 
-The model weights are included in the repo so you don't need the training data to run the app. If you want to retrain:
+The model weights are included — you don't need training data to run the app. For retraining details, see [docs/TRAINING.md](docs/TRAINING.md).
 
-### IAM On-Line Handwriting Database
-- **Source**: [FKI Group, University of Bern](https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database)
-- **What**: ~13,000 handwriting samples from 500+ writers, captured as pen coordinates
-- **Format**: XML files with stroke coordinates, converted to `[dx, dy, pen_flag]` offset arrays
-- **Used for**: Transformer model training (75 writers, filtered for quality)
-- **Access**: Free registration required on the FKI website
-
-### DeepWriting Dataset
-- **Source**: [ETH Zurich — DeepWriting (Aksan et al. 2018)](https://ait.ethz.ch/deepwriting)
-- **What**: 35,000+ handwriting samples
-- **Format**: Converted and rescaled to match IAM offset format `[eos, dx, dy]`
-- **Used for**: Additional LSTM training data
-
-### LSTM Training Data (`data/`)
-- `strokes.npy` — NumPy object array of variable-length stroke sequences, each `(T, 3)` with `[eos, dx, dy]`
-- `sentences.txt` — Corresponding text for each stroke sequence (one per line)
-- These come from the original Graves 2013 handwriting dataset
+| Dataset | Source | Used for |
+|---|---|---|
+| [IAM On-Line Handwriting DB](https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database) | FKI Group, Univ. of Bern (free registration) | Transformer training |
+| [DeepWriting](https://ait.ethz.ch/deepwriting) | ETH Zurich (Aksan et al. 2018) | Additional LSTM data |
+| Graves dataset | Included in `data/` | LSTM training |
 
 ---
 

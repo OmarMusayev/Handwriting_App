@@ -11,21 +11,289 @@
 </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hand Magic</title>
+
+  <!-- Primary SEO -->
+  <title>Hand Magic — AI Handwriting Generator | Free Online Handwriting Synthesis from Text</title>
+  <meta name="description" content="Hand Magic is a free AI-powered handwriting generator that turns any typed text into realistic, human-like handwritten notes. Choose between an LSTM model with style transfer from your own handwriting, or a Transformer model that produces unique samples — all in your browser, no signup required.">
+  <meta name="keywords" content="AI handwriting generator, handwriting synthesis, text to handwriting, handwritten text generator, fake handwriting, handwriting AI, deep learning handwriting, LSTM handwriting, transformer handwriting, neural handwriting, generate handwriting from text, handwritten font generator, realistic handwriting, machine learning handwriting, style transfer handwriting, handwriting cloning, handwriting maker, online handwriting tool, free handwriting generator, IAM handwriting, Graves handwriting model, GPT handwriting, handwriting demo, write like me, custom handwriting AI, hand magic, handmagic">
+  <meta name="author" content="Omar Musayev">
+  <meta name="creator" content="Omar Musayev">
+  <meta name="publisher" content="Omar Musayev">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1">
+  <meta name="bingbot" content="index, follow">
+  <meta name="rating" content="general">
+  <meta name="distribution" content="global">
+  <meta name="language" content="English">
+  <meta http-equiv="content-language" content="en-us">
+  <meta name="revisit-after" content="7 days">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="theme-color" content="#08080f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <meta name="application-name" content="Hand Magic">
+  <meta name="apple-mobile-web-app-title" content="Hand Magic">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="msapplication-TileColor" content="#08080f">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="MobileOptimized" content="width">
+
+  <!-- Canonical & alternates -->
+  <link rel="canonical" href="https://hand-magic.com/">
+  <link rel="alternate" hreflang="en" href="https://hand-magic.com/">
+  <link rel="alternate" hreflang="x-default" href="https://hand-magic.com/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Hand Magic">
+  <meta property="og:title" content="Hand Magic — AI Handwriting Generator | Turn Text into Realistic Handwriting">
+  <meta property="og:description" content="Free AI handwriting generator. Convert text to realistic handwritten notes using LSTM or Transformer deep-learning models. Style-transfer your own handwriting — no signup required.">
+  <meta property="og:url" content="https://hand-magic.com/">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://hand-magic.com/static/sample.png">
+  <meta property="og:image:secure_url" content="https://hand-magic.com/static/sample.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Hand Magic — AI handwriting generator preview, showing handwritten output of typed text">
+  <meta property="article:author" content="Omar Musayev">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Hand Magic — AI Handwriting Generator">
+  <meta name="twitter:description" content="Generate realistic handwriting from any text using deep learning. Free, no signup. Open-source on GitHub.">
+  <meta name="twitter:image" content="https://hand-magic.com/static/sample.png">
+  <meta name="twitter:image:alt" content="Hand Magic — AI handwriting generator preview">
+  <meta name="twitter:creator" content="@OmarMusayev">
+  <meta name="twitter:site" content="@OmarMusayev">
+
+  <!-- Favicons / icons -->
+  <link rel="icon" href="/static/sample.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="/static/sample.png" type="image/png">
+  <link rel="apple-touch-icon" href="/static/sample.png">
+  <link rel="mask-icon" href="/static/sample.svg" color="#00f5ff">
+
+  <!-- Performance hints -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://github.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/main.css">
+
+  <!-- JSON-LD: WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Hand Magic",
+    "alternateName": ["Hand Magic AI Handwriting Generator", "HandMagic", "AI Handwriting Synthesis"],
+    "url": "https://hand-magic.com/",
+    "description": "Free AI handwriting generator that converts typed text into realistic handwritten notes using LSTM and Transformer neural networks, with optional style transfer from your own handwriting.",
+    "applicationCategory": "MultimediaApplication",
+    "applicationSubCategory": "Handwriting Synthesis",
+    "operatingSystem": "Any (web browser)",
+    "browserRequirements": "Requires JavaScript and HTML5 Canvas. Modern browser (Chrome, Firefox, Safari, Edge).",
+    "image": "https://hand-magic.com/static/sample.png",
+    "screenshot": "https://hand-magic.com/static/sample.png",
+    "softwareVersion": "1.0",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Generate handwriting from any typed text",
+      "Two model architectures: LSTM and Transformer",
+      "Style transfer from user-drawn handwriting",
+      "Multi-sample generation via top-k sampling",
+      "Save, rename, and manage up to 10 handwriting styles",
+      "Async streaming generation",
+      "No login required",
+      "Open source under MIT license"
+    ],
+    "creator": {
+      "@type": "Person",
+      "name": "Omar Musayev",
+      "url": "https://github.com/OmarMusayev"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Omar Musayev",
+      "url": "https://github.com/OmarMusayev"
+    },
+    "license": "https://opensource.org/licenses/MIT",
+    "codeRepository": "https://github.com/OmarMusayev/ai-handwriting-generator",
+    "programmingLanguage": ["Python", "JavaScript", "PyTorch"],
+    "potentialAction": {
+      "@type": "UseAction",
+      "target": "https://hand-magic.com/"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: SoftwareSourceCode -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "ai-handwriting-generator",
+    "description": "Open-source AI handwriting generator (LSTM + Transformer) — the engine behind Hand Magic.",
+    "codeRepository": "https://github.com/OmarMusayev/ai-handwriting-generator",
+    "programmingLanguage": "Python",
+    "runtimePlatform": "PyTorch",
+    "license": "https://opensource.org/licenses/MIT",
+    "author": {
+      "@type": "Person",
+      "name": "Omar Musayev",
+      "url": "https://github.com/OmarMusayev"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Hand Magic?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Hand Magic is a free, browser-based AI handwriting generator that turns any typed text into realistic handwritten notes using deep-learning models."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Hand Magic free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Hand Magic is completely free with no signup, and the source code is open-source on GitHub under the MIT license."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it learn my own handwriting?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. In LSTM mode, you can draw a sample of your handwriting on the canvas and the model will generate new text that mimics your stroke style."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which models does Hand Magic use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Two architectures: a 3-layer LSTM with a Gaussian Mixture output (Graves 2013) for style transfer, and a 6-layer cross-attention Transformer trained on the IAM On-Line Handwriting Database for diverse top-k sampling."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where can I find the source code?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The full source code, training pipeline, and pretrained weights are on GitHub at github.com/OmarMusayev/ai-handwriting-generator."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- JSON-LD: Person -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Omar Musayev",
+    "url": "https://github.com/OmarMusayev",
+    "sameAs": [
+      "https://github.com/OmarMusayev",
+      "https://github.com/OmarMusayev/ai-handwriting-generator"
+    ],
+    "jobTitle": "Software Engineer",
+    "knowsAbout": ["Deep Learning", "Handwriting Synthesis", "PyTorch", "Neural Networks", "Generative AI"]
+  }
+  </script>
+
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://hand-magic.com/"
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 <div class="page">
 
   <!-- Header -->
   <header>
-    <span class="logo">✦ HAND MAGIC ✦</span>
+    <h1 class="logo">✦ HAND MAGIC ✦</h1>
     <span class="credit">Made by Omar Musayev</span>
-    <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" aria-label="Toggle theme">[ MINIMAL ]</button>
+    <div class="header-actions">
+      <a class="btn-github btn-github-header"
+         href="https://github.com/OmarMusayev/ai-handwriting-generator"
+         target="_blank" rel="noopener noreferrer me"
+         aria-label="View Hand Magic source code on GitHub"
+         title="View source on GitHub">
+        <svg class="gh-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        <span>STAR ON GITHUB</span>
+        <img class="gh-stars-badge"
+             src="https://img.shields.io/github/stars/OmarMusayev/ai-handwriting-generator?style=flat-square&label=&color=ffffff&labelColor=24292f"
+             alt="GitHub stars"
+             loading="lazy" decoding="async" width="42" height="20">
+      </a>
+      <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" aria-label="Toggle theme">[ MINIMAL ]</button>
+    </div>
   </header>
+
+  <!-- Sub-header GitHub strip (multiple repo entry points) -->
+  <nav class="repo-strip" aria-label="GitHub repository links">
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator"
+       target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+      <span>Repository</span>
+    </a>
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator/stargazers"
+       target="_blank" rel="noopener noreferrer">★ Star</a>
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator/fork"
+       target="_blank" rel="noopener noreferrer">⑂ Fork</a>
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator/issues"
+       target="_blank" rel="noopener noreferrer">◷ Issues</a>
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator/blob/main/README.md"
+       target="_blank" rel="noopener noreferrer">📖 README</a>
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator/blob/main/docs/TRAINING.md"
+       target="_blank" rel="noopener noreferrer">⚙ Training</a>
+    <a class="btn-github btn-github-pill"
+       href="https://github.com/OmarMusayev/ai-handwriting-generator/blob/main/LICENSE"
+       target="_blank" rel="noopener noreferrer">⚖ MIT License</a>
+  </nav>
 
   <!-- Mode toggle -->
   <div class="mode-toggle">
@@ -38,7 +306,16 @@
 
     <!-- Style list panel -->
     <div class="card">
-      <div class="card-title">STYLE LAB</div>
+      <div class="card-title">
+        <span>STYLE LAB</span>
+        <a class="btn-github btn-github-mini"
+           href="https://github.com/OmarMusayev/ai-handwriting-generator/tree/main/models"
+           target="_blank" rel="noopener noreferrer"
+           title="LSTM model source on GitHub" aria-label="LSTM model source on GitHub">
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          <span>code</span>
+        </a>
+      </div>
       <div id="style-list" class="style-list">
         <p class="no-styles">No styles yet.<br>Draw &amp; save one!</p>
       </div>
@@ -61,7 +338,16 @@
   <!-- Generate -->
   <section>
     <div class="card">
-      <div class="card-title">GENERATE</div>
+      <div class="card-title">
+        <span>GENERATE</span>
+        <a class="btn-github btn-github-mini"
+           href="https://github.com/OmarMusayev/ai-handwriting-generator/tree/main/handwriting"
+           target="_blank" rel="noopener noreferrer"
+           title="Generation pipeline source on GitHub" aria-label="Generation pipeline source on GitHub">
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          <span>code</span>
+        </a>
+      </div>
 
       <form id="generate-form">
         <input type="text" id="gen-text" class="text-input" placeholder="Enter text to synthesize..." style="margin-bottom:0.8rem;">
@@ -95,7 +381,142 @@
     </div>
   </section>
 
+  <!-- SEO content section -->
+  <section class="seo-section" aria-label="About Hand Magic">
+    <div class="card seo-card">
+      <h2 class="card-title">ABOUT HAND MAGIC — AI HANDWRITING GENERATOR</h2>
+      <p>
+        <strong>Hand Magic</strong> is a free, open-source AI handwriting generator that turns
+        any text into realistic, human-like handwriting directly in your browser.
+        Powered by two deep-learning architectures — a classic
+        <strong>LSTM with Gaussian Mixture output</strong> (Graves 2013) and a modern
+        <strong>cross-attention Transformer</strong> trained on the IAM On-Line Handwriting Database —
+        Hand Magic produces handwritten text that varies stroke by stroke, just like a real person writing.
+      </p>
+      <p>
+        Use the LSTM mode to perform <strong>style transfer from your own handwriting</strong>:
+        draw a sample on the canvas and the model learns your unique stroke style.
+        Use the Transformer mode to generate <strong>multiple unique handwriting samples</strong>
+        from a single prompt via top-k sampling. Everything runs server-side with no signup,
+        no watermarks, no paywall.
+      </p>
+      <p>
+        The full source code, training pipeline, and pretrained model weights are
+        open-source on GitHub under the MIT license.
+      </p>
+
+      <h3 class="seo-h3">FEATURES</h3>
+      <ul class="seo-list">
+        <li>Text-to-handwriting synthesis using LSTM and Transformer neural networks</li>
+        <li>Style transfer from user-drawn handwriting (LSTM mode)</li>
+        <li>Multi-sample generation with top-k sampling (Transformer mode)</li>
+        <li>Save, rename, and manage up to 10 handwriting styles per session</li>
+        <li>Asynchronous generation — samples stream as they finish</li>
+        <li>Two visual themes: minimal white and synth cyberpunk</li>
+        <li>No login, no API key, no signup required</li>
+        <li>Open source under the MIT license — fork, extend, self-host</li>
+      </ul>
+
+      <h3 class="seo-h3">FREQUENTLY ASKED QUESTIONS</h3>
+      <details class="seo-faq">
+        <summary>Is Hand Magic really free?</summary>
+        <p>Yes — completely free, no signup, no API key, no watermark. The code is MIT-licensed on GitHub.</p>
+      </details>
+      <details class="seo-faq">
+        <summary>Can the AI learn my own handwriting?</summary>
+        <p>Yes. In LSTM mode, draw a few words on the canvas; the model uses your strokes to prime generation in your style.</p>
+      </details>
+      <details class="seo-faq">
+        <summary>Which AI models power Hand Magic?</summary>
+        <p>A 3-layer LSTM (hidden size 400, 20-component Gaussian Mixture output) following Alex Graves (2013), and a 6-layer cross-attention Transformer (d_model 384, 6 heads) trained on IAM On-Line Handwriting DB.</p>
+      </details>
+      <details class="seo-faq">
+        <summary>Can I run Hand Magic on my own machine?</summary>
+        <p>Yes — the entire pipeline (training, inference, FastAPI server, weights) is on GitHub. Clone the repo, install <code>requirements.txt</code>, and run <code>uvicorn main:app</code>.</p>
+      </details>
+      <details class="seo-faq">
+        <summary>What is the source code license?</summary>
+        <p>MIT — you are free to use, modify, and redistribute the code with attribution.</p>
+      </details>
+
+      <div class="seo-cta">
+        <a class="btn-github btn-github-large"
+           href="https://github.com/OmarMusayev/ai-handwriting-generator"
+           target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          <span>VIEW SOURCE ON GITHUB</span>
+        </a>
+        <a class="btn-github btn-github-large btn-github-alt"
+           href="https://github.com/OmarMusayev/ai-handwriting-generator/stargazers"
+           target="_blank" rel="noopener noreferrer">
+          ★ STAR THE REPO
+        </a>
+        <a class="btn-github btn-github-large btn-github-alt"
+           href="https://github.com/OmarMusayev/ai-handwriting-generator/fork"
+           target="_blank" rel="noopener noreferrer">
+          ⑂ FORK ON GITHUB
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>HAND MAGIC</h4>
+        <p>AI Handwriting Generator — free, open-source, MIT-licensed.</p>
+        <p class="footer-credit">Made by <a href="https://github.com/OmarMusayev" target="_blank" rel="noopener noreferrer author">Omar Musayev</a>.</p>
+      </div>
+      <div class="footer-col">
+        <h4>SOURCE CODE</h4>
+        <ul>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/stargazers" target="_blank" rel="noopener noreferrer">Star ★</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/fork" target="_blank" rel="noopener noreferrer">Fork ⑂</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/pulls" target="_blank" rel="noopener noreferrer">Pull Requests</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/releases" target="_blank" rel="noopener noreferrer">Releases</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>DOCS</h4>
+        <ul>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/blob/main/docs/TRAINING.md" target="_blank" rel="noopener noreferrer">Training Guide</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></li>
+          <li><a href="https://github.com/OmarMusayev/ai-handwriting-generator/tree/main/scripts/transformer" target="_blank" rel="noopener noreferrer">Transformer Scripts</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>RESEARCH</h4>
+        <ul>
+          <li><a href="https://arxiv.org/abs/1308.0850" target="_blank" rel="noopener noreferrer">Graves 2013 (LSTM)</a></li>
+          <li><a href="https://ait.ethz.ch/deepwriting" target="_blank" rel="noopener noreferrer">DeepWriting (ETH)</a></li>
+          <li><a href="https://fki.tic.heia-fr.ch/databases/iam-on-line-handwriting-database" target="_blank" rel="noopener noreferrer">IAM On-Line DB</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; <span id="footer-year">2026</span> Omar Musayev — MIT License</span>
+      <a class="btn-github btn-github-pill"
+         href="https://github.com/OmarMusayev/ai-handwriting-generator"
+         target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        <span>OmarMusayev/ai-handwriting-generator</span>
+      </a>
+    </div>
+  </footer>
+
 </div>
+
+<!-- Floating GitHub button -->
+<a class="btn-github-float"
+   href="https://github.com/OmarMusayev/ai-handwriting-generator"
+   target="_blank" rel="noopener noreferrer"
+   aria-label="View Hand Magic on GitHub" title="View on GitHub">
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.07c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+</a>
 
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox">
@@ -127,6 +548,9 @@
     updateBtn(next);
     if (window.studioRedrawCanvas) window.studioRedrawCanvas();
   };
+
+  var yr = document.getElementById('footer-year');
+  if (yr) yr.textContent = new Date().getFullYear();
 })();
 </script>
 </body>

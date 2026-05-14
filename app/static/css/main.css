@@ -717,3 +717,423 @@ input[type="text"], .text-input, #draw-canvas,
   font-weight: 500;
   letter-spacing: 0.04em;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   GitHub buttons (header, repo strip, card-titles, footer, float)
+   ───────────────────────────────────────────────────────────── */
+
+/* Header right-side actions container */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Allow header to wrap on narrow screens */
+header {
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Shared base for all link-style GitHub buttons */
+.btn-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--cyan);
+  background: transparent;
+  color: var(--cyan);
+  border-radius: 3px;
+  padding: 0.35rem 0.8rem;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-github:hover {
+  background: var(--cyan);
+  color: var(--bg);
+  box-shadow: var(--glow-c);
+}
+.btn-github:active { transform: translateY(1px); }
+.btn-github .gh-icon { display: block; }
+
+/* Header version — slightly more prominent, with shield badge */
+.btn-github-header {
+  font-size: 0.95rem;
+  padding: 0.4rem 0.9rem;
+}
+.gh-stars-badge {
+  height: 1.1rem;
+  width: auto;
+  margin-left: 0.15rem;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+/* Repo strip — row of small pills under the header */
+.repo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.8rem 0 0.4rem;
+  border-bottom: 1px solid var(--grid);
+  margin-bottom: 0.6rem;
+}
+.btn-github-pill {
+  font-size: 0.78rem;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  border-color: var(--grid);
+  color: var(--text-dim);
+}
+.btn-github-pill:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(0,245,255,0.08);
+  box-shadow: 0 0 6px rgba(0,245,255,0.3);
+}
+
+/* Tiny inline button inside card-titles */
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.btn-github-mini {
+  font-size: 0.7rem;
+  font-family: 'Share Tech Mono', monospace;
+  padding: 0.15rem 0.5rem;
+  border-color: var(--grid);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+.btn-github-mini:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Large CTA buttons inside the SEO section */
+.btn-github-large {
+  font-size: 1.05rem;
+  padding: 0.6rem 1.2rem;
+  letter-spacing: 0.1em;
+}
+.btn-github-alt {
+  border-color: var(--magenta);
+  color: var(--magenta);
+}
+.btn-github-alt:hover {
+  background: var(--magenta);
+  color: var(--bg);
+  box-shadow: var(--glow-m);
+}
+
+/* Floating GitHub button — bottom-right */
+.btn-github-float {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  z-index: 1002;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  box-shadow: var(--glow-c);
+  text-decoration: none;
+  transition: transform 0.15s, background 0.15s, color 0.15s;
+}
+.btn-github-float:hover {
+  transform: translateY(-2px);
+  background: var(--cyan);
+  color: var(--bg);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SEO content section
+   ───────────────────────────────────────────────────────────── */
+.seo-section { margin-top: 1.6rem; }
+.seo-card p {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 0.7rem;
+  color: var(--text);
+}
+.seo-card strong {
+  color: var(--cyan);
+  font-weight: 600;
+}
+.seo-h3 {
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+  margin: 1rem 0 0.5rem;
+  text-transform: uppercase;
+}
+.seo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+}
+.seo-list li {
+  padding: 0.2rem 0 0.2rem 1.2rem;
+  position: relative;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.seo-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--cyan);
+}
+.seo-faq {
+  border: 1px solid var(--grid);
+  border-radius: 3px;
+  padding: 0.5rem 0.8rem;
+  margin: 0.4rem 0;
+  background: rgba(255,255,255,0.01);
+}
+.seo-faq summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+  list-style: none;
+  outline: none;
+  padding: 0.1rem 0;
+}
+.seo-faq summary::-webkit-details-marker { display: none; }
+.seo-faq summary::before {
+  content: '+ ';
+  color: var(--cyan);
+  font-family: 'VT323', monospace;
+  margin-right: 0.3rem;
+}
+.seo-faq[open] summary::before { content: '− '; }
+.seo-faq p {
+  margin-top: 0.5rem;
+  font-size: 0.86rem;
+  color: var(--text-dim);
+}
+.seo-faq code {
+  background: rgba(0,245,255,0.08);
+  border: 1px solid var(--grid);
+  border-radius: 2px;
+  padding: 0.05rem 0.3rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.82rem;
+}
+.seo-cta {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1.2rem;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Footer
+   ───────────────────────────────────────────────────────────── */
+.site-footer {
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--grid);
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+.footer-col h4 {
+  font-family: 'VT323', monospace;
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+  margin-bottom: 0.5rem;
+}
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+}
+.footer-col li { padding: 0.15rem 0; }
+.footer-col a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.15s;
+}
+.footer-col a:hover { color: var(--cyan); }
+.footer-col p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 0.4rem;
+}
+.footer-credit a { color: var(--cyan); text-decoration: none; }
+.footer-credit a:hover { text-decoration: underline; }
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--grid);
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Minimal-theme overrides
+   ───────────────────────────────────────────────────────────── */
+[data-theme="minimal"] .btn-github {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border-color: #0a0a0a;
+  color: #0a0a0a;
+  background: #ffffff;
+}
+[data-theme="minimal"] .btn-github:hover {
+  background: #0a0a0a;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+[data-theme="minimal"] .btn-github-pill {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-color: #d0d0d0;
+  color: #555555;
+  background: transparent;
+}
+[data-theme="minimal"] .btn-github-pill:hover {
+  border-color: #0a0a0a;
+  color: #0a0a0a;
+  background: #f0f0f0;
+  box-shadow: none;
+}
+
+[data-theme="minimal"] .btn-github-mini {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  border-color: #e0e0e0;
+  color: #666666;
+  background: transparent;
+}
+[data-theme="minimal"] .btn-github-mini:hover {
+  border-color: #0a0a0a;
+  color: #0a0a0a;
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-theme="minimal"] .btn-github-alt {
+  border-color: #0a0a0a;
+  color: #0a0a0a;
+}
+[data-theme="minimal"] .btn-github-alt:hover {
+  background: #0a0a0a;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+[data-theme="minimal"] .btn-github-float {
+  background: #0a0a0a;
+  border-color: #0a0a0a;
+  color: #ffffff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+[data-theme="minimal"] .btn-github-float:hover {
+  background: #ffffff;
+  color: #0a0a0a;
+  border-color: #0a0a0a;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+[data-theme="minimal"] .repo-strip {
+  border-bottom-color: #e5e5e5;
+}
+
+[data-theme="minimal"] .seo-card p { color: #333333; }
+[data-theme="minimal"] .seo-card strong { color: #0a0a0a; }
+[data-theme="minimal"] .seo-h3 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #0a0a0a;
+  text-transform: uppercase;
+}
+[data-theme="minimal"] .seo-list li { color: #333333; }
+[data-theme="minimal"] .seo-list li::before { color: #0a0a0a; }
+[data-theme="minimal"] .seo-faq {
+  border-color: #e5e5e5;
+  background: #fafafa;
+}
+[data-theme="minimal"] .seo-faq summary { color: #0a0a0a; }
+[data-theme="minimal"] .seo-faq summary::before {
+  color: #0a0a0a;
+  font-family: 'Inter', sans-serif;
+}
+[data-theme="minimal"] .seo-faq p { color: #555555; }
+[data-theme="minimal"] .seo-faq code {
+  background: #f0f0f0;
+  border-color: #e0e0e0;
+  color: #0a0a0a;
+}
+
+[data-theme="minimal"] .site-footer { border-top-color: #e5e5e5; }
+[data-theme="minimal"] .footer-col h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a0a0a;
+}
+[data-theme="minimal"] .footer-col a { color: #555555; }
+[data-theme="minimal"] .footer-col a:hover { color: #0a0a0a; }
+[data-theme="minimal"] .footer-col p { color: #666666; }
+[data-theme="minimal"] .footer-credit a { color: #0a0a0a; }
+[data-theme="minimal"] .footer-bottom {
+  border-top-color: #e5e5e5;
+  color: #666666;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Mobile tweaks
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .header-actions { width: 100%; justify-content: flex-start; }
+  .btn-github-header span { display: none; }
+  .btn-github-float {
+    width: 42px;
+    height: 42px;
+    right: 0.8rem;
+    bottom: 0.8rem;
+  }
+  .repo-strip { padding: 0.6rem 0 0.3rem; }
+  .seo-cta { flex-direction: column; align-items: stretch; }
+  .seo-cta .btn-github-large { justify-content: center; }
+}

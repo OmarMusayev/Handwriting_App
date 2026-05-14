@@ -35,7 +35,7 @@ app.include_router(jobs.router, prefix="/api")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse, include_in_schema=False)
